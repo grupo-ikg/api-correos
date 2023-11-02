@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
 function getToken(req, res, next) {
   try {
     fetch(
-      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9pHRjzOBdkd.PTG4KZTEYvVgEVYPhrafzCAGf_YLvr7IFpTSrVmafCEWvXK3_c4X.psIam70iAiKwdAww&client_secret=234B11C328B13A48B8477F225F86F311CEC99D32F2D3E9CD6F979C206A7E9F17&username=config@crediseguro.co.pruebamc&password=Segucredi2020&grant_type=password",
+      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
       {
         method: "POST",
       }

@@ -18,6 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
 function getToken(req, res, next) {
   try {
     fetch(

@@ -1,0 +1,9 @@
+version: "1"
+
+services:
+  app:
+    image: jeissonlopez2003/backend-crediseguro:v1 
+    ports:
+      - 3000:3000
+
+  

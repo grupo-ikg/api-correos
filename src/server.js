@@ -104,6 +104,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
 
 app.post("/getLocation", getToken, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
+  console.log("llega servicio")
 
   try {
     const body = {
@@ -267,5 +268,5 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor en ejecución en el puerto ${PORT}`);
+  console.log(`Servidor al parecer en ejecución en el puerto ${PORT}`);
 });

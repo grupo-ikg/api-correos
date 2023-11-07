@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
 function getToken(req, res, next) {
   try {
     fetch(
-      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
+      "https://crediseguro.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
       {
         method: "POST",
       }
@@ -115,7 +115,7 @@ app.post("/getLocation", getToken, (req, res) => {
       IdParafiltrar: id_department,
     };
     fetch(
-      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
+      "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
       {
         method: "POST",
         headers: {
@@ -197,7 +197,7 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
       NoCuotas: num_shares
     }
     fetch(
-      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
+      "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
       {
         method: "POST",
         headers: {
@@ -253,7 +253,7 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
       NoCuotas: num_shares
     }
     fetch(
-      "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
+      "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
       {
         method: "POST",
         headers: {

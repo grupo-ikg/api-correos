@@ -29,6 +29,7 @@ function getToken(req, res, next) {
     )
       .then((res) => res.json())
       .then((data) => {
+        console.log(data);
         req.token = data.access_token;
         next();
       })
@@ -107,6 +108,8 @@ app.post("/sendDocs", upload.any(), (req, res) => {
 
 app.post("/getLocation", getToken, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
+
+  console.log(req);
 
   try {
     const body = {

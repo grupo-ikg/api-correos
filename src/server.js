@@ -168,7 +168,7 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
       TipoDesolicitud: req_type,
       Name: first_name,
       Apellido: last_name,
-      tipoDocumento: doc_type,
+      TipoDocumento: doc_type,
       NoDocumento: num_document,
       FechaNacimiento: birthdate,
       Genero: genre,
@@ -197,7 +197,7 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
-      body: JSON.stringify(body),
+      data: JSON.stringify(body),
     }).then(({ data }) => {
       res.status(200).json({
         message: "Información enviada exitosamente",
@@ -251,7 +251,7 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
-      body: JSON.stringify(body),
+      data: JSON.stringify(body),
     })
       .then(({data}) => {
         res.status(200).json({

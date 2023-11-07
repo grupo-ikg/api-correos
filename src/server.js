@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 var bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
+const axios = require("axios");
 const multer = require("multer");
 const cors = require("cors");
 const app = express();
@@ -18,17 +19,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
 function getToken(req, res, next) {
   try {
-    fetch(
-      "https://crediseguro.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
-      {
-        method: "POST",
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
+    axios({
+      method: "POST",
+      url: "https://crediseguro.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
+    })
+      .then(({ data }) => {
         req.token = data.access_token;
         next();
       })
@@ -114,19 +111,16 @@ app.post("/getLocation", getToken, (req, res) => {
       quiereCiudad: get_cities,
       IdParafiltrar: id_department,
     };
-    fetch(
-      "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${req.token}`,
-        },
-        body: JSON.stringify(body),
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
+    axios({
+      method: "POST",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
         res.json(data);
       })
       .catch((err) => {
@@ -194,28 +188,26 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
       VigenciaInicial: init_term,
       PrimaTotal: total_annual,
       AbonoInicial: init_credit,
-      NoCuotas: num_shares
-    }
-    fetch(
-      "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${req.token}`,
-        },
-        body: JSON.stringify(body),
-      }
-    ).then((res) => res.json()).then((data) => {
+      NoCuotas: num_shares,
+    };
+    axios({
+      method: "POST",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+      body: JSON.stringify(body),
+    }).then(({ data }) => {
       res.status(200).json({
         message: "Información enviada exitosamente",
-        status: 200
-      })
-    })
+        status: 200,
+      });
+    });
   } catch (error) {
     res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${err}`
-    })
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
   }
 });
 
@@ -250,33 +242,30 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
       AsesordelCredito: broker,
       PrimaTotal: total_annual,
       AbonoInicial: init_credit,
-      NoCuotas: num_shares
-    }
-    fetch(
-      "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${req.token}`,
-        },
-        body: JSON.stringify(body),
-      }
-    ).then((res) => res.json()).then((data) => {
-      res.status(200).json({
-        message: "Información enviada exitosamente",
-        status: 200
-      })
+      NoCuotas: num_shares,
+    };
+    axios({
+      method: "POST",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionCredLead",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+      body: JSON.stringify(body),
     })
+      .then(({data}) => {
+        res.status(200).json({
+          message: "Información enviada exitosamente",
+          status: 200,
+        });
+      });
   } catch (error) {
     res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${err}`
-    })
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
   }
 });
 
-
 app.listen(PORT, () => {
-  console.log(`Servidor en ejecución en el puerto ${PORT}`)
-  ;
+  console.log(`Servidor en ejecución en el puerto ${PORT}`);
 });

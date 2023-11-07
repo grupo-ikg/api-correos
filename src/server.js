@@ -20,7 +20,9 @@ const transporter = nodemailer.createTransport({
 
 
 function getToken(req, res, next) {
+  console.log("entra");
   try {
+    console.log("entra try");
     fetch(
       "https://crediseguro.my.salesforce.com/services/oauth2/token?client_id=3MVG9Kip4IKAZQEUlyFdDD9WcTyDDBuIutxE0WbcmTdXUvEMFQaH7UnNZSogacikiF29SzwJ5gsuB_z9B.fYk&client_secret=55DF5BCCC7D765601D74D7B413081145B6D81066BD0C7811C336CD82B587B921&username=integracioncs@crediseguro.co&password=1nt3gr@cionCredi2020&grant_type=password",
       {

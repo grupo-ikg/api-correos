@@ -1,8 +1,8 @@
-version: "3.4"
+version: "3.5"
 
 services:
   app:
-    image: jeissonlopez2003/backend-crediseguro:v5 
+    image: jeissonlopez2003/backend-crediseguro:v6 
     ports:
       - 4000:4000
 

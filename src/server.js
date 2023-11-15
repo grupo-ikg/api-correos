@@ -14,8 +14,8 @@ const upload = multer({ storage: storage });
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "noreply@crediseguro.co", // Cambia esto con tu dirección de correo electrónico de Gmail
-    pass: "txphfoqdlbqkimtb", // Cambia esto con tu contraseña de correo electrónico de Gmail
+    user: "desarrolladorweb@cavca.com.co", // Cambia esto con tu dirección de correo electrónico de Gmail
+    pass: "Wil3224601736@", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
 
@@ -49,7 +49,7 @@ app.post("/send", (req, res) => {
   const { destinatario, asunto, mensaje } = req.body;
 
   const mailOptions = {
-    from: "noreply@crediseguro.co",
+    from: "desarrolladorweb@cavca.com.co",
     to: [destinatario[0], destinatario[1]],
     subject: asunto,
     text: mensaje,
@@ -70,7 +70,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
   const docs = req.files;
 
   const mailOptions = {
-    from: "noreply@crediseguro.co",
+    from: "desarrolladorweb@cavca.com.co",
     to: req.body.sender,
     subject: `${req.body.subject} ${req.body.document}`,
     text: req.body.message,
@@ -104,7 +104,6 @@ app.post("/sendDocs", upload.any(), (req, res) => {
 
 app.post("/getLocation", getToken, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
-  console.log("llega servicio")
 
   try {
     const body = {
@@ -163,6 +162,9 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
     init_credit,
     num_shares,
   } = req.body;
+
+  console.log(birthdate)
+  console.log(init_term)
 
   try {
     const body = {

@@ -41,6 +41,28 @@ function getToken(req, res, next) {
   }
 }
 
+function getTokenDev(req, res, next) {
+  try {
+    axios({
+      method: "POST",
+      url: "https://test.salesforce.com/services/oauth2/token?client_id=3MVG934iBBsZ.kUGJW_XmNtzKUtBzIeoJrLXxyG5T02h4Mfyc74lkWgrleeUGH8gQovY74z_lZsZ6jkKty4Xb&client_secret=A1A8001E8F354B8F0B36493F3BAB9E1193139CB7F88CDA66F89AA4ED7F9F2E97&username=jescobar@crediseguro.co.pruebamc&password=Credi123*&grant_type=password",
+    })
+      .then(({ data }) => {
+        req.token = data.access_token;
+        next();
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+}
+
 app.use(bodyParser.json());
 
 app.use(cors());
@@ -266,6 +288,211 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
           status: 200,
         });
       });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
+  }
+});
+
+app.post("/sendDocument", getTokenDev, (req, res) => {
+
+  const {
+    Id,
+    NumeroDoc,
+    Nombres,
+    Apellidos,
+    FechaNacimiento,
+    LugarNacimiento,
+    FechaExpedicion,
+    LugarExpedicion,
+    Sexo,
+    fileName,
+    fileBody,
+    fileExtension
+  } = req.body;
+
+  try {
+    const body = {
+      NumeroDoc: NumeroDoc,
+      Nombres: Nombres,
+      Apellidos: Apellidos,
+      FechaNacimiento: FechaNacimiento,
+      LugarNacimiento: LugarNacimiento,
+      FechaExpedicion: FechaExpedicion,
+      LugarExpedicion: LugarExpedicion,
+      Sexo: Sexo,
+      Id: Id,
+      ArchivosDoc: [
+        {
+          fileName: fileName,
+          fileBody: fileBody,
+          fileExtension: fileExtension,
+        },
+      ],
+    };
+
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoDoc",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+      data: JSON.stringify(body),
+    }).then(({ data }) => {
+      res.status(200).json({
+        message: "Información enviada exitosamente",
+        status: 200,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
+  }
+});
+
+app.post("/sendDocPoliza", getTokenDev, (req, res) => {
+  const {
+    Id,
+    fileName,
+    fileBody,
+    fileExtension,
+  } = req.body;
+
+  try {
+    const body = {
+      Id: Id,
+      ArchivosDoc: [
+        {
+          fileName: fileName,
+          fileBody: fileBody,
+          fileExtension: fileExtension,
+        },
+      ],
+    };
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoDocPoliza",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+      data: JSON.stringify(body),
+    }).then(({ data }) => {
+      res.status(200).json({
+        message: "Información enviada exitosamente",
+        status: 200,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
+  }
+});
+
+app.post("/sendPoliza", getTokenDev, (req, res) => {
+  const {
+    Id,
+    IdAseguradora,
+    Cod_Sucursal,
+    Nombre_Sucursal,
+    Poliza_No,
+    Vigencia_Desde,
+    Vigencia_Hasta,
+    Producto,
+    Fecha_Solicitud,
+    Tomador,
+    Direccion_Tomador,
+    Ciudad_Tomador,
+    Doc_Tomador,
+    Telefono_Tomador,
+    Asegurado,
+    Ciudad_Asegurado,
+    Direccion_Asegurado,
+    Doc_Asegurado,
+    Telefono_Asegurado,
+    Ciudad_Beneficiario,
+    Direccion_Beneficiario,
+    Doc_Beneficiario,
+    Telefono_Beneficiario,
+    Genero_Asegurado,
+    Placa,
+    Modelo,
+    Total_Prima,
+    Intermediarios,
+    No_Riesgo,
+    Email_Tomador,
+    Fecha_Nacimiento_Asegurado,
+    Email_Asegurado,
+    Email_Beneficiario,
+    Clase_de_Vehiculo,
+    Ciudad_de_Circulacion,
+    Ramo,
+    Linea,
+    Beneficiario
+  } = req.body;
+
+  try {
+    const body = {
+      Id: Id, // *
+      IdAseguradora: IdAseguradora, // String (aseguradora de la poliza) *  001VF000000xUJpYAM Id Unica aseguradora para pruebas
+      Cod_Sucursal: Cod_Sucursal, //String
+      Nombre_Sucursal: Nombre_Sucursal, //String
+      Poliza_No: Poliza_No, //String *
+      Vigencia_Desde: Vigencia_Desde, //Date(DD/MM/YYYY) *
+      Vigencia_Hasta: Vigencia_Hasta, //Date(DD/MM/YYYY)
+      Producto: Producto, //String
+      Fecha_Solicitud: Fecha_Solicitud, //Date(DD/MM/YYYY)
+      Tomador: Tomador, //String
+      Direccion_Tomador: Direccion_Tomador, //String
+      Ciudad_Tomador: Ciudad_Tomador, //String
+      Doc_Tomador: Doc_Tomador, //String *
+      Telefono_Tomador: Telefono_Tomador, //String
+      Asegurado: Asegurado, //String
+      Ciudad_ASEGURADO: Ciudad_Asegurado, //String
+      Direccion_Asegurado: Direccion_Asegurado, //String
+      Doc_Asegurado: Doc_Asegurado, //String
+      Telefono_Asegurado: Telefono_Asegurado, //String
+      Ciudad_Beneficiario: Ciudad_Beneficiario, //String
+      Direccion_Beneficiario: Direccion_Beneficiario, //String
+      Doc_Beneficiario: Doc_Beneficiario, //String
+      Telefono_Beneficiario:  Telefono_Beneficiario, //String
+      Genero_Asegurado: Genero_Asegurado, //String
+      Placa: Placa, //String *
+      Modelo: Modelo, //String
+      Total_Prima: Total_Prima, //String no con decimales *
+      Intermediarios: Intermediarios, //String
+      No_Riesgo: No_Riesgo, //String
+      Email_Tomador: Email_Tomador, //String
+      Fecha_Nacimiento_Asegurado: Fecha_Nacimiento_Asegurado, //Date (DD/MM/YYYY)
+      Email_Asegurado: Email_Asegurado, //String
+      Email_Beneficiario: Email_Beneficiario, //String
+      Clase_de_Vehiculo: Clase_de_Vehiculo, //String
+      Ciudad_de_Circulacion: Ciudad_de_Circulacion, //String
+      Ramo: Ramo, //String
+      Linea: Linea, //String
+      Beneficiario: Beneficiario, //String
+    };
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoPoliza",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+      data: JSON.stringify(body),
+    }).then(({ data }) => {
+      res.status(200).json({
+        message: "Información enviada exitosamente",
+        status: 200,
+      });
+    });
   } catch (error) {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor: ${err}`,

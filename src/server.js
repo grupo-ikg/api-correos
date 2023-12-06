@@ -341,9 +341,24 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
-      data: JSON.stringify(body),
+      data: JSON.stringify({
+        NumeroDoc: NumeroDoc,
+        Nombres: Nombres,
+        Apellidos: Apellidos,
+        FechaNacimiento: FechaNacimiento,
+        LugarNacimiento: LugarNacimiento,
+        FechaExpedicion: FechaExpedicion,
+        LugarExpedicion: LugarExpedicion,
+        Sexo: Sexo,
+        Id: Id,
+        ArchivosDoc: [
+          {
+            fileName: fileName,
+            fileExtension: fileExtension,
+          },
+        ],
+      }),
     }).then(({ data }) => {
-
       const bodyText = {
         text:
           "Se enviaron los siguientes datos de la cedula" +
@@ -354,15 +369,15 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
         method: "POST",
         url: "https://chat.googleapis.com/v1/spaces/AAAAM0xrHks/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=c_r-S9rceAhR7JEGBlMJz7_6BhCFduDksVdd9hMSpxE",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         data: JSON.stringify(bodyText),
-      })
+      });
 
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
-        data: data
+        data: data,
       });
     });
   } catch (error) {
@@ -405,7 +420,15 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
       const bodyText = {
         text:
           "Se envio la siguiente poliza" +
-          JSON.stringify(body),
+          JSON.stringify({
+      Id: Id,
+      ArchivosDoc: [
+        {
+          fileName: fileName,
+          fileExtension: fileExtension,
+        },
+      ],
+    ),
       };
 
       axios({

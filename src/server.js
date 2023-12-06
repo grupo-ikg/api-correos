@@ -343,9 +343,26 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
       },
       data: JSON.stringify(body),
     }).then(({ data }) => {
+
+      const bodyText = {
+        text:
+          "Se enviaron los siguientes datos de la cedula" +
+          JSON.stringify(body),
+      };
+
+      axios({
+        method: "POST",
+        url: "https://chat.googleapis.com/v1/spaces/AAAAM0xrHks/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=c_r-S9rceAhR7JEGBlMJz7_6BhCFduDksVdd9hMSpxE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        data: JSON.stringify(bodyText),
+      })
+
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
+        data: data
       });
     });
   } catch (error) {
@@ -384,9 +401,26 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
       },
       data: JSON.stringify(body),
     }).then(({ data }) => {
+
+      const bodyText = {
+        text:
+          "Se envio la siguiente poliza" +
+          JSON.stringify(body),
+      };
+
+      axios({
+        method: "POST",
+        url: "https://chat.googleapis.com/v1/spaces/AAAAM0xrHks/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=c_r-S9rceAhR7JEGBlMJz7_6BhCFduDksVdd9hMSpxE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify(bodyText),
+      });
+
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
+        data: data
       });
     });
   } catch (error) {
@@ -489,9 +523,27 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
       },
       data: JSON.stringify(body),
     }).then(({ data }) => {
+
+
+      const bodyText = {
+        text:
+          "Se enviaron los siguientes datos de la poliza : " +
+          JSON.stringify(body),
+      };
+
+      axios({
+        method: "POST",
+        url: "https://chat.googleapis.com/v1/spaces/AAAAM0xrHks/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=c_r-S9rceAhR7JEGBlMJz7_6BhCFduDksVdd9hMSpxE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify(bodyText),
+      });
+
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
+        data: data
       });
     });
   } catch (error) {

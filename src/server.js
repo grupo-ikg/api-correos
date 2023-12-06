@@ -492,7 +492,8 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
     Ciudad_de_Circulacion,
     Ramo,
     Linea,
-    Beneficiario
+    Beneficiario,
+    No_Certificado
   } = req.body;
 
   try {
@@ -519,7 +520,7 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
       Ciudad_Beneficiario: Ciudad_Beneficiario, //String
       Direccion_Beneficiario: Direccion_Beneficiario, //String
       Doc_Beneficiario: Doc_Beneficiario, //String
-      Telefono_Beneficiario:  Telefono_Beneficiario, //String
+      Telefono_Beneficiario: Telefono_Beneficiario, //String
       Genero_Asegurado: Genero_Asegurado, //String
       Placa: Placa, //String *
       Modelo: Modelo, //String
@@ -535,6 +536,7 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
       Ramo: Ramo, //String
       Linea: Linea, //String
       Beneficiario: Beneficiario, //String
+      No_Certificado: No_Certificado, //String
     };
 
     axios({

@@ -341,28 +341,28 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
-      data: JSON.stringify({
-        NumeroDoc: NumeroDoc,
-        Nombres: Nombres,
-        Apellidos: Apellidos,
-        FechaNacimiento: FechaNacimiento,
-        LugarNacimiento: LugarNacimiento,
-        FechaExpedicion: FechaExpedicion,
-        LugarExpedicion: LugarExpedicion,
-        Sexo: Sexo,
-        Id: Id,
-        ArchivosDoc: [
-          {
-            fileName: fileName,
-            fileExtension: fileExtension,
-          },
-        ],
-      }),
+      data: JSON.stringify(body),
     }).then(({ data }) => {
       const bodyText = {
         text:
           "Se enviaron los siguientes datos de la cedula" +
-          JSON.stringify(body),
+          JSON.stringify({
+            NumeroDoc: NumeroDoc,
+            Nombres: Nombres,
+            Apellidos: Apellidos,
+            FechaNacimiento: FechaNacimiento,
+            LugarNacimiento: LugarNacimiento,
+            FechaExpedicion: FechaExpedicion,
+            LugarExpedicion: LugarExpedicion,
+            Sexo: Sexo,
+            Id: Id,
+            ArchivosDoc: [
+              {
+                fileName: fileName,
+                fileExtension: fileExtension,
+              },
+            ],
+          }),
       };
 
       axios({

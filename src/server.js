@@ -421,14 +421,14 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
         text:
           "Se envio la siguiente poliza" +
           JSON.stringify({
-      Id: Id,
-      ArchivosDoc: [
-        {
-          fileName: fileName,
-          fileExtension: fileExtension,
-        },
-      ],
-    ),
+          Id: Id,
+          ArchivosDoc: [
+            {
+              fileName: fileName,
+              fileExtension: fileExtension,
+            },
+          ]
+      }),
       };
 
       axios({

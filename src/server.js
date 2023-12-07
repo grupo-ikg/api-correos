@@ -578,6 +578,24 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
   }
 });
 
+app.get("/getPoliza/:id", getTokenDev, (req, res) => {
+
+  axios({
+    method: "GET",
+    url: `https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/Poliza_Front/${req.params.id}`,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${req.token}`,
+    },
+  }).then(({ data }) => {
+    res.status(200).json({
+      message: "Información obtendida exitosamente",
+      status: 200,
+      data: data,
+    });
+  });
+})
+
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto ${PORT}`);
 });

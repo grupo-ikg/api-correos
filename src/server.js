@@ -596,6 +596,38 @@ app.get("/getPoliza/:id", getTokenDev, (req, res) => {
   });
 })
 
+app.post("/getLocationDev", getTokenDev, (req, res) => {
+  const { id_department, get_cities, get_departments } = req.body;
+
+  try {
+    const body = {
+      quiereDepartamentos: get_departments,
+      quiereCiudad: get_cities,
+      IdParafiltrar: id_department,
+    };
+    axios({
+      method: "POST",
+      url: "https://test.salesforce.com/services/apexrest/V1/EnvioCiudad",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto ${PORT}`);
 });

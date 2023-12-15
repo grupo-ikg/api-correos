@@ -296,8 +296,7 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
   }
 });
 
-app.post("/sendDocument", getTokenDev, (req, res) => {
-
+app.post("/sendDocument", getToken, (req, res) => {
   const {
     Id,
     NumeroDoc,
@@ -310,7 +309,7 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
     Sexo,
     fileName,
     fileBody,
-    fileExtension
+    fileExtension,
   } = req.body;
 
   try {
@@ -333,10 +332,9 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
       ],
     };
 
-
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoDoc",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/PreCreditoDoc",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
@@ -387,13 +385,8 @@ app.post("/sendDocument", getTokenDev, (req, res) => {
   }
 });
 
-app.post("/sendDocPoliza", getTokenDev, (req, res) => {
-  const {
-    Id,
-    fileName,
-    fileBody,
-    fileExtension,
-  } = req.body;
+app.post("/sendDocPoliza", getToken, (req, res) => {
+  const { Id, fileName, fileBody, fileExtension } = req.body;
 
   try {
     const body = {
@@ -409,26 +402,25 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
 
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoDocPoliza",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/PreCreditoDocPoliza",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
       data: JSON.stringify(body),
     }).then(({ data }) => {
-
       const bodyText = {
         text:
           "Se envio la siguiente poliza" +
           JSON.stringify({
-          Id: Id,
-          ArchivosDoc: [
-            {
-              fileName: fileName,
-              fileExtension: fileExtension,
-            },
-          ]
-      }),
+            Id: Id,
+            ArchivosDoc: [
+              {
+                fileName: fileName,
+                fileExtension: fileExtension,
+              },
+            ],
+          }),
       };
 
       axios({
@@ -443,7 +435,7 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
-        data: data
+        data: data,
       });
     });
   } catch (error) {
@@ -453,7 +445,7 @@ app.post("/sendDocPoliza", getTokenDev, (req, res) => {
   }
 });
 
-app.post("/sendPoliza", getTokenDev, (req, res) => {
+app.post("/sendPoliza", getToken, (req, res) => {
   const {
     Id,
     IdAseguradora,
@@ -493,7 +485,7 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
     Ramo,
     Linea,
     Beneficiario,
-    No_Certificado
+    No_Certificado,
   } = req.body;
 
   try {
@@ -541,15 +533,13 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
 
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/PreCreditoPoliza",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/PreCreditoPoliza",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
       data: JSON.stringify(body),
     }).then(({ data }) => {
-
-
       const bodyText = {
         text:
           "Se enviaron los siguientes datos de la poliza : " +
@@ -568,7 +558,7 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
       res.status(200).json({
         message: "Información enviada exitosamente",
         status: 200,
-        data: data
+        data: data,
       });
     });
   } catch (error) {
@@ -578,11 +568,10 @@ app.post("/sendPoliza", getTokenDev, (req, res) => {
   }
 });
 
-app.get("/getPoliza/:id", getTokenDev, (req, res) => {
-
+app.get("/getPoliza/:id", getToken, (req, res) => {
   axios({
     method: "GET",
-    url: `https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/Poliza_Front/${req.params.id}`,
+    url: `https://crediseguro.my.salesforce.com/services/apexrest/V1/Poliza_Front/${req.params.id}`,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${req.token}`,
@@ -594,9 +583,9 @@ app.get("/getPoliza/:id", getTokenDev, (req, res) => {
       data: data,
     });
   });
-})
+});
 
-app.post("/getLocationDev", getTokenDev, (req, res) => {
+app.post("/getToken", getTokenDev, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
 
   try {
@@ -607,7 +596,7 @@ app.post("/getLocationDev", getTokenDev, (req, res) => {
     };
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",

@@ -585,38 +585,61 @@ app.get("/getPoliza/:id", getToken, (req, res) => {
   });
 });
 
-app.post("/getToken", getTokenDev, (req, res) => {
-  const { id_department, get_cities, get_departments } = req.body;
+app.get("/getDocument/:document", getToken, (req, res) => {
 
-  try {
-    const body = {
-      quiereDepartamentos: get_departments,
-      quiereCiudad: get_cities,
-      IdParafiltrar: id_department,
+  axios({
+    method: "GET",
+    url: `https://crediseguro.my.salesforce.com/services/apexrest/V1/Info_Client/${req.params.document}`,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${req.token}`,
+    },
+  }).then(({ data  }) => {
+
+    const valueEmail = data.Email;
+    const valuePhone = data.Phone;
+    const chars = 5; // Cantidad de caracters visibles
+
+    const email_masked = valueEmail.replace(
+      /[a-z0-9\-_.]+@/gi,
+      (c) =>
+        c.substr(0, chars) +
+        c
+          .split("")
+          .slice(chars, -1)
+          .map((v) => "*")
+          .join("") +
+        "@"
+    );
+
+    const mascaraLongitud = valuePhone.length - 4; // Dejaremos visibles los 2 extremos y ocultaremos el centro
+
+    // Crea la máscara de asteriscos
+    const mascara = "*".repeat(mascaraLongitud);
+
+    // Construye el nuevo número con los extremos visibles y el centro oculto
+    const phone_masked =
+      valuePhone.substring(0, 2) +
+      mascara +
+      valuePhone.substring(valuePhone.length - 2);
+
+    const daraReturn = {
+      Tipodocumento: data.Tipodocumento,
+      Phone: phone_masked,
+      Nombre: data.Nombre,
+      NoDocumento: data.NoDocumento,
+      IdCliente: data.IdCliente,
+      Email: email_masked,
     };
-    axios({
-      method: "POST",
-      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
-      data: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${req.token}`,
-      },
-    })
-      .then(({ data }) => {
-        res.json(data);
-      })
-      .catch((err) => {
-        res.status(500).json({
-          error: `Ha ocurrido un problema con el servidor: ${err}`,
-        });
-      });
-  } catch (error) {
-    res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${error}`,
+
+    res.status(200).json({
+      message: "Información obtendida exitosamente",
+      status: 200,
+      data: daraReturn,
     });
-  }
+  });
 });
+
 app.listen(PORT, () => {
-  console.log(`Servidor al parecer en ejecución en el puerto ${PORT}`);
+  console.log(`Servidor al parecer en ejecución en el puerto que es ${PORT}`);
 });

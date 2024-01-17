@@ -563,7 +563,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
         data: data,
       });
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor: ${err}`,
     });

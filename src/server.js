@@ -489,6 +489,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
     Prima_NetaHDI,
     Numero_Electronico,
     Codigo_Agente,
+    Anexo
   } = req.body;
 
   try {
@@ -535,6 +536,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
       Prima_NetaHDI: Prima_NetaHDI,
       Numero_Electronico: Numero_Electronico,
       Codigo_Agente: Codigo_Agente,
+      Anexo: Anexo,
     };
 
     axios({

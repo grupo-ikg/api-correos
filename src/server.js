@@ -604,47 +604,57 @@ app.get("/getDocument/:document", getToken, (req, res) => {
     },
   }).then(({ data  }) => {
 
-    const valueEmail = data.Email;
-    const valuePhone = data.Phone;
-    const chars = 5; // Cantidad de caracters visibles
+    console.log(data);
 
-    const email_masked = valueEmail.replace(
-      /[a-z0-9\-_.]+@/gi,
-      (c) =>
-        c.substr(0, chars) +
-        c
-          .split("")
-          .slice(chars, -1)
-          .map((v) => "*")
-          .join("") +
-        "@"
-    );
+    if(data.IdCliente){
+      const valueEmail = data.Email;
+      const valuePhone = data.Phone;
+      const chars = 5; // Cantidad de caracters visibles
 
-    const mascaraLongitud = valuePhone.length - 4; // Dejaremos visibles los 2 extremos y ocultaremos el centro
+      const email_masked = valueEmail.replace(
+        /[a-z0-9\-_.]+@/gi,
+        (c) =>
+          c.substr(0, chars) +
+          c
+            .split("")
+            .slice(chars, -1)
+            .map((v) => "*")
+            .join("") +
+          "@"
+      );
 
-    // Crea la máscara de asteriscos
-    const mascara = "*".repeat(mascaraLongitud);
+      const mascaraLongitud = valuePhone.length - 4; // Dejaremos visibles los 2 extremos y ocultaremos el centro
 
-    // Construye el nuevo número con los extremos visibles y el centro oculto
-    const phone_masked =
-      valuePhone.substring(0, 2) +
-      mascara +
-      valuePhone.substring(valuePhone.length - 2);
+      // Crea la máscara de asteriscos
+      const mascara = "*".repeat(mascaraLongitud);
 
-    const daraReturn = {
-      Tipodocumento: data.Tipodocumento,
-      Phone: phone_masked,
-      Nombre: data.Nombre,
-      NoDocumento: data.NoDocumento,
-      IdCliente: data.IdCliente,
-      Email: email_masked,
-    };
+      // Construye el nuevo número con los extremos visibles y el centro oculto
+      const phone_masked =
+        valuePhone.substring(0, 2) +
+        mascara +
+        valuePhone.substring(valuePhone.length - 2);
 
-    res.status(200).json({
-      message: "Información obtendida exitosamente",
-      status: 200,
-      data: daraReturn,
-    });
+      const daraReturn = {
+        Tipodocumento: data.Tipodocumento,
+        Phone: phone_masked,
+        Nombre: data.Nombre,
+        NoDocumento: data.NoDocumento,
+        IdCliente: data.IdCliente,
+        Email: email_masked,
+      };
+
+      res.status(200).json({
+        message: "Información obtendida exitosamente",
+        status: 200,
+        data: daraReturn,
+      });
+    }else{
+      res.status(200).json({
+        message: "Información no encontrada",
+        status: 200,
+        data: ""
+      })
+    }
   });
 });
 

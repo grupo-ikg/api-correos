@@ -45,7 +45,7 @@ function getTokenDev(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://test.salesforce.com/services/oauth2/token?client_id=3MVG934iBBsZ.kUGJW_XmNtzKUtBzIeoJrLXxyG5T02h4Mfyc74lkWgrleeUGH8gQovY74z_lZsZ6jkKty4Xb&client_secret=A1A8001E8F354B8F0B36493F3BAB9E1193139CB7F88CDA66F89AA4ED7F9F2E97&username=jescobar@crediseguro.co.pruebamc&password=Credi123*&grant_type=password",
+      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9aePn9FJJ2neFMUiOCnfKmjXZI58PCMg6_jHfRvk8ISQ1yBOYN_uo0b2Rw4ZLSfxy.gPc0QpJT1EJefuF&client_secret=6482B8F0D74EF780BCFDF7E0C8E325223E8C54CABA087DD64991B00DE88B681D&username=jescobar@crediseguro.co.pasarela&password=SalesCredi2024&grant_type=password",
     })
       .then(({ data }) => {
         req.token = data.access_token;
@@ -657,6 +657,80 @@ app.get("/getDocument/:document", getToken, (req, res) => {
     }
   });
 });
+
+app.post("/updateAccountDruo", getTokenDev, (req, res) => {
+  const { data } = req.body;
+
+  try {
+
+    const body = {
+      IdCuenta: data.primary_reference,
+      IdCuentaDruo: data.uuid,
+    };
+
+    console.log(body);
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/apexrest/V1/AgregarCuentaBancaria",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+});
+
+app.post("/updatePaymentDruo", getTokenDev, (req, res) => {
+  const { data } = req.body;  
+
+  try {
+    const body = {
+      id_cuota: data.primary_reference,
+      status: data.status,
+      Valor: data.amount,
+      Code: data.code
+    };
+
+    console.log(body);
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/apexrest/V1/ValidacionDebito",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto que es ${PORT}`);

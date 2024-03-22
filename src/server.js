@@ -658,7 +658,7 @@ app.get("/getDocument/:document", getToken, (req, res) => {
   });
 });
 
-app.post("/updateAccountDruo", getTokenDev, (req, res) => {
+app.post("/updateAccountDruo", getToken, (req, res) => {
   const { data } = req.body;
 
   try {
@@ -672,7 +672,7 @@ app.post("/updateAccountDruo", getTokenDev, (req, res) => {
 
     axios({
       method: "POST",
-      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/apexrest/V1/AgregarCuentaBancaria",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/AgregarCuentaBancaria",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -694,7 +694,7 @@ app.post("/updateAccountDruo", getTokenDev, (req, res) => {
   }
 });
 
-app.post("/updatePaymentDruo", getTokenDev, (req, res) => {
+app.post("/updatePaymentDruo", getToken, (req, res) => {
   const { data } = req.body;  
 
   try {
@@ -709,7 +709,7 @@ app.post("/updatePaymentDruo", getTokenDev, (req, res) => {
 
     axios({
       method: "POST",
-      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/apexrest/V1/ValidacionDebito",
+      url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/ValidacionDebito",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",

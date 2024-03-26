@@ -524,7 +524,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
       Intermediarios: Intermediarios, //String
       No_Riesgo: No_Riesgo, //String
       Email_Tomador: Email_Tomador, //String
-      Fecha_Nacimiento_Asegurado: "", //Date (DD/MM/YYYY)
+      Fecha_Nacimiento_Asegurado: null, //Date (DD/MM/YYYY)
       Email_Asegurado: Email_Asegurado, //String
       Email_Beneficiario: Email_Beneficiario, //String
       Clase_de_Vehiculo: Clase_de_Vehiculo, //String

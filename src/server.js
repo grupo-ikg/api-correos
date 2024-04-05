@@ -186,7 +186,6 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
     num_shares,
   } = req.body;
 
-
   try {
     const body = {
       TipoDesolicitud: req_type,
@@ -280,13 +279,12 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
         Authorization: `Bearer ${req.token}`,
       },
       data: JSON.stringify(body),
-    })
-      .then(({data}) => {
-        res.status(200).json({
-          message: "Información enviada exitosamente",
-          status: 200,
-        });
+    }).then(({ data }) => {
+      res.status(200).json({
+        message: "Información enviada exitosamente",
+        status: 200,
       });
+    });
   } catch (error) {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor: ${err}`,
@@ -487,7 +485,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
     Prima_NetaHDI,
     Numero_Electronico,
     Codigo_Agente,
-    Anexo
+    Anexo,
   } = req.body;
 
   try {
@@ -592,7 +590,6 @@ app.get("/getPoliza/:id", getToken, (req, res) => {
 });
 
 app.get("/getDocument/:document", getToken, (req, res) => {
-
   axios({
     method: "GET",
     url: `https://crediseguro.my.salesforce.com/services/apexrest/V1/Info_Client/${req.params.document}`,
@@ -600,11 +597,10 @@ app.get("/getDocument/:document", getToken, (req, res) => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${req.token}`,
     },
-  }).then(({ data  }) => {
-
+  }).then(({ data }) => {
     console.log(data);
 
-    if(data.IdCliente){
+    if (data.IdCliente) {
       const valueEmail = data.Email;
       const valuePhone = data.Phone;
       const chars = 5; // Cantidad de caracters visibles
@@ -646,12 +642,12 @@ app.get("/getDocument/:document", getToken, (req, res) => {
         status: 200,
         data: daraReturn,
       });
-    }else{
+    } else {
       res.status(200).json({
         message: "Información no encontrada",
         status: 200,
-        data: ""
-      })
+        data: "",
+      });
     }
   });
 });
@@ -660,7 +656,6 @@ app.post("/updateAccountDruo", getToken, (req, res) => {
   const { data } = req.body;
 
   try {
-
     const body = {
       IdCuenta: data.primary_reference,
       IdCuentaDruo: data.uuid,
@@ -693,14 +688,14 @@ app.post("/updateAccountDruo", getToken, (req, res) => {
 });
 
 app.post("/updatePaymentDruo", getToken, (req, res) => {
-  const { data } = req.body;  
+  const { data } = req.body;
 
   try {
     const body = {
       id_cuota: data.primary_reference,
       status: data.status,
       Valor: data.amount,
-      Code: data.code
+      Code: data.code,
     };
 
     console.log(body);
@@ -729,6 +724,26 @@ app.post("/updatePaymentDruo", getToken, (req, res) => {
   }
 });
 
+app.get("/getCavcaReview", (req, res) => {
+  try {
+    axios({
+      method: "GET",
+      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=AIzaSyCUiIyB5nTdYIi5RPNZjaluo4_BzTyzvtY&reviews_sort=newest`,
+    })
+      .then(({ data }) => {
+        res.json(data.result);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (err) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto que es ${PORT}`);

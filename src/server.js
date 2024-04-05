@@ -728,7 +728,7 @@ app.get("/getCavcaReview", (req, res) => {
   try {
     axios({
       method: "GET",
-      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=AIzaSyCUiIyB5nTdYIi5RPNZjaluo4_BzTyzvtY&reviews_sort=newest`,
+      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=test&reviews_sort=newest`,
     })
       .then(({ data }) => {
         res.json(data.result);

@@ -69,13 +69,14 @@ app.use(express.urlencoded({ limit: "50mb" }));
 app.use(cors());
 
 app.post("/send", (req, res) => {
-  const { destinatario, asunto, mensaje } = req.body;
+  const { destinatario, asunto, mensaje, codigo } = req.body;
 
   const mailOptions = {
     from: "desarrolladorweb@cavca.com.co",
     to: [destinatario[0], destinatario[1]],
     subject: asunto,
     text: mensaje,
+    html: codigo
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -728,7 +729,7 @@ app.get("/getCavcaReview", (req, res) => {
   try {
     axios({
       method: "GET",
-      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=test&reviews_sort=newest`,
+      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=Test&reviews_sort=newest&reviews_no_translations=true&translated=false`,
     })
       .then(({ data }) => {
         res.json(data.result);

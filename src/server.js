@@ -163,8 +163,6 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
     num_shares,
   } = req.body;
 
-  console.log(birthdate)
-  console.log(init_term)
 
   try {
     const body = {

@@ -76,7 +76,7 @@ app.post("/send", (req, res) => {
     to: [destinatario[0], destinatario[1]],
     subject: asunto,
     text: mensaje,
-    html: codigo
+    html: codigo,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -93,27 +93,43 @@ app.post("/send", (req, res) => {
 app.post("/sendDocs", upload.any(), (req, res) => {
   const docs = req.files;
 
-  const mailOptions = {
-    from: "desarrolladorweb@cavca.com.co",
-    to: req.body.sender,
-    subject: `${req.body.subject} ${req.body.document}`,
-    text: req.body.message,
-    attachments: docs.map((doc) => ({
-      filename: `${
-        doc.fieldname === "cc"
-          ? "CC"
-          : doc.fieldname === "policy"
-          ? "POLIZA"
-          : "OTRO"
-      }-${
-        doc.fieldname === "policy" && req.body.plate
-          ? req.body.plate
-          : req.body.document
-      }.pdf`,
-      content: doc.buffer,
-      encoding: "base64",
-    })),
-  };
+  let mailOptions = {};
+
+  if (req.body.type && req.body.type === "doc") {
+    mailOptions = {
+      from: "desarrolladorweb@cavca.com.co",
+      to: req.body.sender.split(","),
+      subject: `${req.body.subject}`,
+      text: req.body.text,
+      attachments: docs.map((doc) => ({
+        filename: `${doc.originalname}.pdf`,
+        content: doc.buffer,
+        encoding: "base64",
+      })),
+    };
+  } else {
+    mailOptions = {
+      from: "desarrolladorweb@cavca.com.co",
+      to: req.body.sender,
+      subject: `${req.body.subject} ${req.body.document}`,
+      text: req.body.message,
+      attachments: docs.map((doc) => ({
+        filename: `${
+          doc.fieldname === "cc"
+            ? "CC"
+            : doc.fieldname === "policy"
+            ? "POLIZA"
+            : "OTRO"
+        }-${
+          doc.fieldname === "policy" && req.body.plate
+            ? req.body.plate
+            : req.body.document
+        }.pdf`,
+        content: doc.buffer,
+        encoding: "base64",
+      })),
+    };
+  }
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -121,7 +137,9 @@ app.post("/sendDocs", upload.any(), (req, res) => {
       res.status(500).send("Error al enviar el correo electrónico");
     } else {
       console.log("Correo electrónico enviado: " + info.response);
-      res.status(200).send("Correo electrónico enviado con éxito");
+      res
+        .status(200)
+        .json({ message: "Correo electrónico enviado con éxito", status: 200 });
     }
   });
 });
@@ -729,7 +747,7 @@ app.get("/getCavcaReview", (req, res) => {
   try {
     axios({
       method: "GET",
-      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=Test&reviews_sort=newest&reviews_no_translations=true&translated=false`,
+      url: `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJa8uS4UGFP44RBeHK_EWwGVs&fields=name,rating,reviews,user_ratings_total&key=AIzaSyCUiIyB5nTdYIi5RPNZjaluo4_BzTyzvtY&reviews_sort=newest&reviews_no_translations=true&translated=false`,
     })
       .then(({ data }) => {
         res.json(data.result);

@@ -1,12 +1,19 @@
 require("dotenv").config();
 const express = require("express");
-var bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
 const multer = require("multer");
 const cors = require("cors");
+const docusign = require("docusign-esign");
+const fs = require("fs");
+const path = require("path");
+
 const app = express();
+
 const PORT = process.env.PORT || 4000;
+const jwt = require("jsonwebtoken");
+const tokenExpiration = "1h";
+const secretKey = process.env.SECRET_JWT;
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -63,11 +70,128 @@ function getTokenDev(req, res, next) {
   }
 }
 
+// Función para generar un token JWT basado en client_id y client_secret
+function generateToken(clientId, clientSecret) {
+  // Validar que client_id y client_secret sean correctos
+  if (
+    clientId !== process.env.VALID_CLIENT_ID ||
+    clientSecret !== process.env.VALID_CLIENT_SECRET
+  ) {
+    throw new Error("Invalid client credentials");
+  }
+
+  const payload = { clientId: clientId };
+
+  const token = jwt.sign(payload, secretKey, {
+    expiresIn: tokenExpiration,
+  });
+
+  return token;
+}
+
+// Función para validar un token JWT
+function validateToken(token) {
+    try {
+        const decoded = jwt.verify(token, secretKey);
+        return { valid: true, decoded: decoded };
+    } catch (error) {
+        return { valid: false, error: error.message };
+    }
+}
+
+// Middleware para validar el token JWT en una ruta protegida
+function verifyToken(req, res, next) {
+    const token = req.headers['authorization']; // El token debe enviarse en la cabecera 'Authorization'
+
+    if (!token) {
+        return res.status(403).send({ auth: false, message: 'No token provided.' });
+    }
+
+    const validation = validateToken(token);
+
+    if (!validation.valid) {
+        return res.status(401).send({ auth: false, message: 'Failed to authenticate token.' });
+    }
+
+    req.client = validation.decoded; // Guarda los datos decodificados en req.client
+    next(); // Continúa con la siguiente función o ruta
+}
+
+async function createToken (userIdSender) {
+  return new Promise(function (resolve) {
+    let key = fs.readFileSync(
+      path.join(__dirname, "../key/privateOtacc.key")
+    );
+
+    if (userIdSender === "4095dee1-7ed5-4dd9-be1d-c59ce524f7df") {
+      key = fs.readFileSync(
+        path.join(__dirname, "../key/privateDev.key")
+      );
+    }
+    let dsApiClient = new docusign.ApiClient();
+
+    dsApiClient.setBasePath(process.env.DOCUSIGN_BASE_PATH);
+
+    const results = dsApiClient.requestJWTUserToken(
+      process.env.DOCUSIGN_CLIENT_ID,
+      process.env.DOCUSIGN_USER_ID,
+      "signature",
+      key,
+      3600
+    );
+
+    results
+      .then(function (result) {
+
+        resolve(result.body);
+        return result.body;
+      })
+      .catch(async function (error) {
+
+
+
+        if (
+          error.response.data.error ||
+          error.response.body.error === "consent_required"
+        ) {
+          let scopes = "signature";
+          let consentUrl =
+            process.env.DOCUSIGN_URL +
+            "?response_type=code&scope=impersonation+" +
+            scopes +
+            "&client_id=" +
+            process.env.DOCUSIGN_CLIENT_ID +
+            "&redirect_uri=" +
+            process.env.DOCUSIGN_REDIRECT_URI;
+
+          console.log(consentUrl);
+          resolve(consentUrl);
+          return consentUrl;
+        } else {
+          resolve("error");
+          return "error";
+        }
+      });
+  });
+};
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
 
 app.use(cors());
 
+app.get("/generate-token", (req, res) => {
+  const { clientId, clientSecret } = req.query;
+
+  try {
+    const token = generateToken(clientId, clientSecret);
+    res.json({ auth: true, token: token });
+  } catch (error) {
+    res.status(401).send({ auth: false, message: error.message });
+  }
+});
+
+//envio de correos
 app.post("/send", (req, res) => {
   const { destinatario, asunto, mensaje, codigo } = req.body;
 
@@ -90,6 +214,7 @@ app.post("/send", (req, res) => {
   });
 });
 
+//envio de archivos
 app.post("/sendDocs", upload.any(), (req, res) => {
   const docs = req.files;
 
@@ -144,6 +269,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
   });
 });
 
+// obtener ciudades de salesforce - migrar a salesforce
 app.post("/getLocation", getToken, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
 
@@ -177,6 +303,7 @@ app.post("/getLocation", getToken, (req, res) => {
   }
 });
 
+// envio de formulario de crediseguro salesforce
 app.post("/sendFormNewCredit", getToken, (req, res) => {
   const {
     req_type,
@@ -253,6 +380,7 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
   }
 });
 
+// envio de formulario de crediseguro renovaciones salesforce
 app.post("/sendFormRenovation", getToken, (req, res) => {
   const {
     req_type,
@@ -311,6 +439,7 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
   }
 });
 
+//envio documento de identidad OCR
 app.post("/sendDocument", getToken, (req, res) => {
   const {
     Id,
@@ -400,6 +529,7 @@ app.post("/sendDocument", getToken, (req, res) => {
   }
 });
 
+//envio documento de poliza de aseguradora OCR
 app.post("/sendDocPoliza", getToken, (req, res) => {
   const { Id, fileName, fileBody, fileExtension } = req.body;
 
@@ -460,6 +590,7 @@ app.post("/sendDocPoliza", getToken, (req, res) => {
   }
 });
 
+// envio de datos poliza desde OCR
 app.post("/sendPoliza", getToken, (req, res) => {
   const {
     Id,
@@ -505,6 +636,8 @@ app.post("/sendPoliza", getToken, (req, res) => {
     Numero_Electronico,
     Codigo_Agente,
     Anexo,
+    Documento_Poliza,
+    tipoVehiculo
   } = req.body;
 
   try {
@@ -552,6 +685,8 @@ app.post("/sendPoliza", getToken, (req, res) => {
       Numero_Electronico: Numero_Electronico,
       Codigo_Agente: Codigo_Agente,
       Anexo: Anexo,
+      Documento_Poliza: Documento_Poliza,
+      tipoVehiculo: tipoVehiculo,
     };
 
     axios({
@@ -591,6 +726,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
   }
 });
 
+// obtener informacion de poliza  - migrar
 app.get("/getPoliza/:id", getToken, (req, res) => {
   axios({
     method: "GET",
@@ -608,6 +744,7 @@ app.get("/getPoliza/:id", getToken, (req, res) => {
   });
 });
 
+// obtener informacion de documento  - migrar
 app.get("/getDocument/:document", getToken, (req, res) => {
   axios({
     method: "GET",
@@ -671,6 +808,7 @@ app.get("/getDocument/:document", getToken, (req, res) => {
   });
 });
 
+// actualizar cuenta druo
 app.post("/updateAccountDruo", getToken, (req, res) => {
   const { data } = req.body;
 
@@ -706,6 +844,7 @@ app.post("/updateAccountDruo", getToken, (req, res) => {
   }
 });
 
+// actualizar pago druo
 app.post("/updatePaymentDruo", getToken, (req, res) => {
   const { data } = req.body;
 
@@ -743,6 +882,7 @@ app.post("/updatePaymentDruo", getToken, (req, res) => {
   }
 });
 
+// obtener reseñas google 
 app.get("/getCavcaReview", (req, res) => {
   try {
     axios({
@@ -761,6 +901,39 @@ app.get("/getCavcaReview", (req, res) => {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor: ${err}`,
     });
+  }
+});
+
+app.get("/getTemplate", verifyToken, async (req, res) => {
+  try {
+    const tokenDocusign = await createToken("4095dee1-7ed5-4dd9-be1d-c59ce524f7df");
+
+    let dsApiClient = new docusign.ApiClient();
+
+    dsApiClient.setBasePath(process.env.DOCUSIGN_BASE_PATH);
+
+    dsApiClient.addDefaultHeader(
+      "Authorization",
+      "Bearer " + tokenDocusign.access_token
+    );
+
+    return new Promise(function (resolve, reject) {
+      let templatesApi = new docusign.TemplatesApi(dsApiClient);
+
+      templatesApi
+        .listTemplates(process.env.DOCUSIGN_ACCOUNT_ID)
+        .then((result) => {
+          resolve(result);
+          res.json(result);
+          return result;
+        })
+        .catch((error) => {
+          console.log(error);
+          reject(error);
+        });
+    });
+  } catch (error) {
+    throw new Error(error);
   }
 });
 

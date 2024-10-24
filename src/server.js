@@ -637,7 +637,8 @@ app.post("/sendPoliza", getToken, (req, res) => {
     Codigo_Agente,
     Anexo,
     Documento_Poliza,
-    tipoVehiculo
+    tipoVehiculo,
+    oficina,
   } = req.body;
 
   try {
@@ -687,6 +688,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
       Anexo: Anexo,
       Documento_Poliza: Documento_Poliza,
       tipoVehiculo: tipoVehiculo,
+      oficina: oficina,
     };
 
     axios({

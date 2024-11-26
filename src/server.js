@@ -639,6 +639,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
     Documento_Poliza,
     tipoVehiculo,
     oficina,
+    rechazoOCR,
   } = req.body;
 
   try {
@@ -689,6 +690,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
       Documento_Poliza: Documento_Poliza,
       tipoVehiculo: tipoVehiculo,
       oficina: oficina,
+      rechazoOCR: rechazoOCR,
     };
 
     axios({

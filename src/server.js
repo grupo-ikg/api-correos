@@ -52,7 +52,7 @@ function getTokenDev(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://crediseguro--pasarela.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9aePn9FJJ2neFMUiOCnfKmjXZI58PCMg6_jHfRvk8ISQ1yBOYN_uo0b2Rw4ZLSfxy.gPc0QpJT1EJefuF&client_secret=6482B8F0D74EF780BCFDF7E0C8E325223E8C54CABA087DD64991B00DE88B681D&username=jescobar@crediseguro.co.pasarela&password=SalesCredi2024&grant_type=password",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9WCdh6PFin0jN5Df21kRJKitsev2I72yjCeJIXS_5feLY5bSdIu9QYh1YGFa2_0GRD12xqGKi4S417M_n&client_secret=D851257982E517A9E351DCCA88AE58A73C8EED287923C1F43E8DDB2EE52B687D&username=jescobar@crediseguro.co.pruebamc&password=SalesCredi2024&grant_type=password",
     })
       .then(({ data }) => {
         req.token = data.access_token;
@@ -937,6 +937,929 @@ app.get("/getTemplate", verifyToken, async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
+});
+
+app.post("/sendEnvelope", verifyToken, async (req, res) => {
+  const { template_id, data, comprador_uno, comprador_dos } = req.body;
+
+  const tokenDocusign = await createToken(
+    "4095dee1-7ed5-4dd9-be1d-c59ce524f7df"
+  );
+
+  let dsApiClient = new docusign.ApiClient();
+
+  dsApiClient.setBasePath(process.env.DOCUSIGN_BASE_PATH);
+
+  dsApiClient.addDefaultHeader(
+    "Authorization",
+    "Bearer " + tokenDocusign.access_token
+  );
+
+  try {
+    return new Promise(function (resolve, reject) {
+      const envelopesApi = new docusign.EnvelopesApi(dsApiClient);
+
+      // Define los destinatarios
+      const signer1 = docusign.Signer.constructFromObject({
+        email: comprador_uno.correoElectronico, //"nn@nn.com.co",
+        name: comprador_uno.nombre, //"nn",
+        recipientId: "1",
+        roleName: "comprador_1", // Este debe coincidir con el rol definido en tu plantilla
+      });
+
+      // const signer2 = docusign.Signer.constructFromObject({
+      //   email: comprador_dos.correoElectronico, //"nn@nn.com.co",
+      //   name: comprador_dos.nombre, //"nn",
+      //   recipientId: "2",
+      //   roleName: "comprador_2", // Este debe coincidir con el rol definido en tu plantilla
+      // });
+
+      // Define los campos de la plantilla que quieres rellenar
+
+      // formato 6037c31e-9aaa-4327-91a8-6ba346bd2f18
+      const nombre_proyecto_1 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_1",
+        value: data.nombre_proyecto, //"Seguros Falsos S.A.",
+      });
+
+      const fidecomiso_1 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_1",
+        value: data.fidecomiso, //"Seguros Falsos S.A.",
+      });
+
+      const fecha_escrituracion = docusign.Text.constructFromObject({
+        tabLabel: "fecha_escrituracion",
+        value: data.fecha_escrituracion,
+      });
+
+      const comprador_nombre_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_nombre_1",
+        value: data.comprador_nombre,
+      });
+
+      const comprador_identificacion_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_identificacion_1",
+        value: data.comprador_identificacion,
+      });
+
+      const comprador_expedicion_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_expedicion_1",
+        value: data.comprador_expedicion,
+      });
+
+      const comprador_estado_civil_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_estado_civil_1",
+        value: data.comprador_estado_civil,
+      });
+
+      const comprador_direccion_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_direccion_1",
+        value: data.comprador_direccion,
+      });
+
+      const comprador_telefono_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_telefono_1",
+        value: data.comprador_telefono,
+      });
+
+      const comprador_email_1 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_email_1",
+        value: data.comprador_email,
+      });
+
+      const comprador_nombre_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_nombre_2",
+        value: data.comprador_nombre,
+      });
+
+      const comprador_identificacion_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_identificacion_2",
+        value: data.comprador_identificacion,
+      });
+
+      const comprador_expedicion_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_expedicion_2",
+        value: data.comprador_expedicion,
+      });
+
+      const comprador_estado_civil_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_estado_civil_2",
+        value: data.comprador_estado_civil,
+      });
+
+      const comprador_direccion_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_direccion_2",
+        value: data.comprador_direccion,
+      });
+
+      const comprador_telefono_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_telefono_2",
+        value: data.comprador_telefono,
+      });
+
+      const comprador_email_2 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_email_2",
+        value: data.comprador_email,
+      });
+
+      const agrupacion = docusign.Text.constructFromObject({
+        tabLabel: "agrupacion",
+        value: data.agrupacion,
+      });
+
+      const area_privada = docusign.Text.constructFromObject({
+        tabLabel: "area_privada",
+        value: data.area_privada,
+      });
+
+      const valor_inmueble_letras_1 = docusign.Text.constructFromObject({
+        tabLabel: "valor_inmueble_letras_1",
+        value: data.valor_inmueble_letras,
+      });
+
+      const valor_inmueble_numero = docusign.Text.constructFromObject({
+        tabLabel: "valor_inmueble_numero",
+        value: data.valor_inmueble_numero,
+      });
+
+      const valor_smlv_letras = docusign.Text.constructFromObject({
+        tabLabel: "valor_smlv_letras",
+        value: data.valor_smlv_letras,
+      });
+
+      const valor_smlv_numero = docusign.Text.constructFromObject({
+        tabLabel: "valor_smlv_numero",
+        value: data.valor_smlv_numero,
+      });
+
+      const fiducia = docusign.Text.constructFromObject({
+        tabLabel: "fiducia",
+        value: data.fiducia,
+      });
+
+      const nombre_proyecto_2 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_2",
+        value: data.nombre_proyecto,
+      });
+
+      const apartamento = docusign.Text.constructFromObject({
+        tabLabel: "apartamento",
+        value: data.apartamento,
+      });
+
+      const torre = docusign.Text.constructFromObject({
+        tabLabel: "torre",
+        value: data.torre,
+      });
+
+      const area_construida_2 = docusign.Text.constructFromObject({
+        tabLabel: "area_construida_2",
+        value: data.area_construida,
+      });
+
+      const area_privada_2 = docusign.Text.constructFromObject({
+        tabLabel: "area_privada_2",
+        value: data.area_privada,
+      });
+
+      const nombre_proyecto_3 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_3",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_4 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_4",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_5 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_5",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_6 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_6",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_7 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_7",
+        value: data.nombre_proyecto,
+      });
+
+      const smlv_valor = docusign.Text.constructFromObject({
+        tabLabel: "smlv_valor",
+        value: data.smlv_valor,
+      });
+
+      const valor_inmueble_letras_2 = docusign.Text.constructFromObject({
+        tabLabel: "valor_inmueble_letras_2",
+        value: data.valor_inmueble_letras,
+      });
+
+      const valor_inmueble_numero_2 = docusign.Text.constructFromObject({
+        tabLabel: "valor_inmueble_numero_2",
+        value: data.valor_inmueble_numero,
+      });
+
+      const fidecomiso_2 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_2",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_3 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_3",
+        value: data.fidecomiso,
+      });
+
+      const smlv_escritura = docusign.Text.constructFromObject({
+        tabLabel: "smlv_escritura",
+        value: data.smlv_escritura,
+      });
+
+      const entidad_1 = docusign.Text.constructFromObject({
+        tabLabel: "entidad_1",
+        value: data.entidad,
+      });
+
+      const valor_entidad_1 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_1",
+        value: data.valor_entidad,
+      });
+
+      const valor_entidad_letras_1 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_letras_1",
+        value: data.valor_entidad_letras,
+      });
+
+      const entidad_2 = docusign.Text.constructFromObject({
+        tabLabel: "entidad_2",
+        value: data.entidad,
+      });
+
+      const valor_entidad_2 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_2",
+        value: data.valor_entidad,
+      });
+
+      const valor_entidad_letras_2 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_letras_2",
+        value: data.valor_entidad_letras,
+      });
+
+      const entidad_3 = docusign.Text.constructFromObject({
+        tabLabel: "entidad_3",
+        value: data.entidad,
+      });
+
+      const valor_entidad_3 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_3",
+        value: data.valor_entidad,
+      });
+
+      const valor_entidad_letras_3 = docusign.Text.constructFromObject({
+        tabLabel: "valor_entidad_letras_3",
+        value: data.valor_entidad_letras,
+      });
+
+      const fidecomiso_4 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_4",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_5 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_5",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_6 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_6",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_7 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_7",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_8 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_8",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_9 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_9",
+        value: data.fidecomiso,
+      });
+
+      const fidecomiso_10 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_10",
+        value: data.fidecomiso,
+      });
+
+      const nombre_proyecto_8 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_8",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_20 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_20",
+        value: data.nombre_proyecto,
+      });
+
+      const fidecomiso_11 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_11",
+        value: data.fidecomiso,
+      });
+
+      const clausula_11 = docusign.Text.constructFromObject({
+        tabLabel: "clausula_11",
+        value: data.clausula,
+      });
+
+      const nombre_proyecto_9 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_9",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_10 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_10",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_11 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_11",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_12 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_12",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_13 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_13",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_14 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_14",
+        value: data.nombre_proyecto,
+      });
+
+      const fidecomiso_12 = docusign.Text.constructFromObject({
+        tabLabel: "fidecomiso_12",
+        value: data.fidecomiso,
+      });
+
+      const nombre_proyecto_15 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_15",
+        value: data.nombre_proyecto,
+      });
+
+      const conyuge_nombre = docusign.Text.constructFromObject({
+        tabLabel: "conyuge_nombre",
+        value: data.conyuge_nombre,
+      });
+
+      const conyuge_documento = docusign.Text.constructFromObject({
+        tabLabel: "conyuge_documento",
+        value: data.conyuge_documento,
+      });
+
+      const nombre_proyecto_16 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_16",
+        value: data.nombre_proyecto,
+      });
+
+      const agrupacion_2 = docusign.Text.constructFromObject({
+        tabLabel: "agrupacion_2",
+        value: data.agrupacion,
+      });
+
+      const comprador_nombre_3 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_nombre_3",
+        value: data.comprador_nombre,
+      });
+
+      const comprador_identificacion_3 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_identificacion_3",
+        value: data.comprador_identificacion,
+      });
+
+      const tipo_venta = docusign.Text.constructFromObject({
+        tabLabel: "tipo_venta",
+        value: data.tipo_venta,
+      });
+
+      const valor_venta = docusign.Text.constructFromObject({
+        tabLabel: "valor_venta",
+        value: data.valor_venta,
+      });
+
+      const subtotal = docusign.Text.constructFromObject({
+        tabLabel: "subtotal",
+        value: data.subtotal,
+      });
+
+      const cancelado_a_fecha = docusign.Text.constructFromObject({
+        tabLabel: "cancelado_a_fecha",
+        value: data.cancelado_a_fecha,
+      });
+
+      const fecha_separacion = docusign.Text.constructFromObject({
+        tabLabel: "fecha_separacion",
+        value: data.fecha_separacion,
+      });
+
+      const valor_separacion = docusign.Text.constructFromObject({
+        tabLabel: "valor_separacion",
+        value: data.valor_separacion,
+      });
+
+      const fecha_cuota = docusign.Text.constructFromObject({
+        tabLabel: "fecha_cuota",
+        value: data.fecha_cuota,
+      });
+
+      const valor_cuota = docusign.Text.constructFromObject({
+        tabLabel: "valor_cuota",
+        value: data.valor_cuota,
+      });
+
+      const fecha_cesantias = docusign.Text.constructFromObject({
+        tabLabel: "fecha_cesantias",
+        value: data.fecha_cesantias,
+      });
+
+      const valor_cesantias = docusign.Text.constructFromObject({
+        tabLabel: "valor_cesantias",
+        value: data.valor_cesantias,
+      });
+
+      const fecha_ahorro_programado = docusign.Text.constructFromObject({
+        tabLabel: "fecha_ahorro_programado",
+        value: data.fecha_ahorro_programado,
+      });
+
+      const valor_ahorro_programado = docusign.Text.constructFromObject({
+        tabLabel: "valor_ahorro_programado",
+        value: data.valor_ahorro_programado,
+      });
+
+      const fecha_pensiones_obligatorias = docusign.Text.constructFromObject({
+        tabLabel: "fecha_pensiones_obligatorias",
+        value: data.fecha_pensiones_obligatorias,
+      });
+
+      const valor_pensiones_obligatorias = docusign.Text.constructFromObject({
+        tabLabel: "valor_pensiones_obligatorias",
+        value: data.valor_pensiones_obligatorias,
+      });
+
+      const fecha_cuenta_afc = docusign.Text.constructFromObject({
+        tabLabel: "fecha_cuenta_afc",
+        value: data.fecha_cuenta_afc,
+      });
+
+      const valor_cuenta_afc = docusign.Text.constructFromObject({
+        tabLabel: "valor_cuenta_afc",
+        value: data.valor_cuenta_afc,
+      });
+
+      const fecha_abono_cuota_inicial = docusign.Text.constructFromObject({
+        tabLabel: "fecha_abono_cuota_inicial",
+        value: data.fecha_abono_cuota_inicial,
+      });
+
+      const valor_bono_cuota_inicial = docusign.Text.constructFromObject({
+        tabLabel: "valor_bono_cuota_inicial",
+        value: data.valor_bono_cuota_inicial,
+      });
+
+      const fecha_subsidio = docusign.Text.constructFromObject({
+        tabLabel: "fecha_subsidio",
+        value: data.fecha_subsidio,
+      });
+
+      const valor_subsidio = docusign.Text.constructFromObject({
+        tabLabel: "valor_subsidio",
+        value: data.valor_subsidio,
+      });
+
+      const fecha_subsidio_concurrente = docusign.Text.constructFromObject({
+        tabLabel: "fecha_subsidio_concurrente",
+        value: data.fecha_subsidio_concurrente,
+      });
+
+      const valor_subsidio_concurrente = docusign.Text.constructFromObject({
+        tabLabel: "valor_subsidio_concurrente",
+        value: data.valor_subsidio_concurrente,
+      });
+
+      const fecha_subsidio_habitat = docusign.Text.constructFromObject({
+        tabLabel: "fecha_subsidio_habitat",
+        value: data.fecha_subsidio_habitat,
+      });
+
+      const valor_subsidio_habitat = docusign.Text.constructFromObject({
+        tabLabel: "valor_subsidio_habitat",
+        value: data.valor_subsidio_habitat,
+      });
+
+      const fecha_credito = docusign.Text.constructFromObject({
+        tabLabel: "fecha_credito",
+        value: data.fecha_credito,
+      });
+
+      const valor_credito = docusign.Text.constructFromObject({
+        tabLabel: "valor_credito",
+        value: data.valor_credito,
+      });
+
+      const valor_total = docusign.Text.constructFromObject({
+        tabLabel: "valor_total",
+        value: data.valor_total,
+      });
+
+      const nombre_proyecto_17 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_17",
+        value: data.nombre_proyecto,
+      });
+
+      const agrupacion_3 = docusign.Text.constructFromObject({
+        tabLabel: "agrupacion_3",
+        value: data.agrupacion,
+      });
+
+      const comprador_nombre_4 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_nombre_4",
+        value: data.comprador_nombre,
+      });
+
+      const comprador_identificacion_4 = docusign.Text.constructFromObject({
+        tabLabel: "comprador_identificacion_4",
+        value: data.comprador_identificacion,
+      });
+
+      const tipo_inmueble = docusign.Text.constructFromObject({
+        tabLabel: "tipo_inmueble",
+        value: data.tipo_inmueble,
+      });
+
+      const nombre_proyecto_18 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_18",
+        value: data.nombre_proyecto,
+      });
+
+      const nombre_proyecto_19 = docusign.Text.constructFromObject({
+        tabLabel: "nombre_proyecto_19",
+        value: data.nombre_proyecto,
+      });
+
+      const area_construida_total = docusign.Text.constructFromObject({
+        tabLabel: "area_construida_total",
+        value: data.area_construida_total,
+      });      
+
+      signer1.tabs = docusign.Tabs.constructFromObject({
+        textTabs: [
+          nombre_proyecto_1,
+          fidecomiso_1,
+          fecha_escrituracion,
+          comprador_nombre_1,
+          comprador_identificacion_1,
+          comprador_expedicion_1,
+          comprador_estado_civil_1,
+          comprador_direccion_1,
+          comprador_telefono_1,
+          comprador_email_1,
+          comprador_nombre_2,
+          comprador_identificacion_2,
+          comprador_expedicion_2,
+          comprador_estado_civil_2,
+          comprador_direccion_2,
+          comprador_telefono_2,
+          comprador_email_2,
+          agrupacion,
+          area_privada,
+          valor_inmueble_letras_1,
+          valor_inmueble_numero,
+          valor_smlv_letras,
+          valor_smlv_numero,
+          fiducia,
+          nombre_proyecto_2,
+          apartamento,
+          torre,
+          area_construida_2,
+          area_privada_2,
+          nombre_proyecto_3,
+          nombre_proyecto_4,
+          nombre_proyecto_5,
+          nombre_proyecto_6,
+          nombre_proyecto_7,
+          smlv_valor,
+          valor_inmueble_letras_2,
+          valor_inmueble_numero_2,
+          fidecomiso_2,
+          fidecomiso_3,
+          smlv_escritura,
+          entidad_1,
+          valor_entidad_1,
+          valor_entidad_letras_1,
+          entidad_2,
+          valor_entidad_2,
+          valor_entidad_letras_2,
+          entidad_3,
+          valor_entidad_3,
+          valor_entidad_letras_3,
+          fidecomiso_4,
+          fidecomiso_5,
+          fidecomiso_6,
+          fidecomiso_7,
+          fidecomiso_8,
+          fidecomiso_9,
+          fidecomiso_10,
+          nombre_proyecto_8,
+          nombre_proyecto_20,
+          fidecomiso_11,
+          clausula_11,
+          nombre_proyecto_9,
+          nombre_proyecto_10,
+          nombre_proyecto_11,
+          nombre_proyecto_12,
+          nombre_proyecto_13,
+          nombre_proyecto_14,
+          fidecomiso_12,
+          nombre_proyecto_15,
+          conyuge_nombre,
+          conyuge_documento,
+          nombre_proyecto_16,
+          agrupacion_2,
+          comprador_nombre_3,
+          comprador_identificacion_3,
+          tipo_venta,
+          valor_venta,
+          subtotal,
+          cancelado_a_fecha,
+          fecha_separacion,
+          valor_separacion,
+          fecha_cuota,
+          valor_cuota,
+          fecha_cesantias,
+          valor_cesantias,
+          fecha_ahorro_programado,
+          valor_ahorro_programado,
+          fecha_pensiones_obligatorias,
+          valor_pensiones_obligatorias,
+          fecha_cuenta_afc,
+          valor_cuenta_afc,
+          fecha_abono_cuota_inicial,
+          valor_bono_cuota_inicial,
+          fecha_subsidio,
+          valor_subsidio,
+          fecha_subsidio_concurrente,
+          valor_subsidio_concurrente,
+          fecha_subsidio_habitat,
+          valor_subsidio_habitat,
+          fecha_credito,
+          valor_credito,
+          valor_total,
+          nombre_proyecto_17,
+          agrupacion_3,
+          comprador_nombre_4,
+          comprador_identificacion_4,
+          tipo_inmueble,
+          nombre_proyecto_18,
+          nombre_proyecto_19,
+          area_construida_total,
+        ],
+      });
+
+      // signer2.tabs = docusign.Tabs.constructFromObject({
+      //   textTabs: [
+      //     nombre_proyecto_1,
+      //     fidecomiso_1,
+      //     fecha_escrituracion,
+      //     comprador_nombre_1,
+      //     comprador_identificacion_1,
+      //     comprador_expedicion_1,
+      //     comprador_estado_civil_1,
+      //     comprador_direccion_1,
+      //     comprador_telefono_1,
+      //     comprador_email_1,
+      //     comprador_nombre_2,
+      //     comprador_identificacion_2,
+      //     comprador_expedicion_2,
+      //     comprador_estado_civil_2,
+      //     comprador_direccion_2,
+      //     comprador_telefono_2,
+      //     comprador_email_2,
+      //     agrupacion,
+      //     area_privada,
+      //     valor_inmueble_letras_1,
+      //     valor_inmueble_numero,
+      //     valor_smlv_letras,
+      //     valor_smlv_numero,
+      //     fiducia,
+      //     nombre_proyecto_2,
+      //     apartamento,
+      //     torre,
+      //     area_construida_2,
+      //     area_privada_2,
+      //     nombre_proyecto_3,
+      //     nombre_proyecto_4,
+      //     nombre_proyecto_5,
+      //     nombre_proyecto_6,
+      //     nombre_proyecto_7,
+      //     smlv_valor,
+      //     valor_inmueble_letras_2,
+      //     valor_inmueble_numero_2,
+      //     fidecomiso_2,
+      //     fidecomiso_3,
+      //     smlv_escritura,
+      //     entidad_1,
+      //     valor_entidad_1,
+      //     valor_entidad_letras_1,
+      //     entidad_2,
+      //     valor_entidad_2,
+      //     valor_entidad_letras_2,
+      //     entidad_3,
+      //     valor_entidad_3,
+      //     valor_entidad_letras_3,
+      //     fidecomiso_4,
+      //     fidecomiso_5,
+      //     fidecomiso_6,
+      //     fidecomiso_7,
+      //     fidecomiso_8,
+      //     fidecomiso_9,
+      //     fidecomiso_10,
+      //     nombre_proyecto_8,
+      //     nombre_proyecto_20,
+      //     fidecomiso_11,
+      //     clausula_11,
+      //     nombre_proyecto_9,
+      //     nombre_proyecto_10,
+      //     nombre_proyecto_11,
+      //     nombre_proyecto_12,
+      //     nombre_proyecto_13,
+      //     nombre_proyecto_14,
+      //     fidecomiso_12,
+      //     nombre_proyecto_15,
+      //     conyuge_nombre,
+      //     conyuge_documento,
+      //     nombre_proyecto_16,
+      //     agrupacion_2,
+      //     comprador_nombre_3,
+      //     comprador_identificacion_3,
+      //     tipo_venta,
+      //     valor_venta,
+      //     subtotal,
+      //     cancelado_a_fecha,
+      //     fecha_separacion,
+      //     valor_separacion,
+      //     fecha_cuota,
+      //     valor_cuota,
+      //     fecha_cesantias,
+      //     valor_cesantias,
+      //     fecha_ahorro_programado,
+      //     valor_ahorro_programado,
+      //     fecha_pensiones_obligatorias,
+      //     valor_pensiones_obligatorias,
+      //     fecha_cuenta_afc,
+      //     valor_cuenta_afc,
+      //     fecha_abono_cuota_inicial,
+      //     valor_bono_cuota_inicial,
+      //     fecha_subsidio,
+      //     valor_subsidio,
+      //     fecha_subsidio_concurrente,
+      //     valor_subsidio_concurrente,
+      //     fecha_subsidio_habitat,
+      //     valor_subsidio_habitat,
+      //     fecha_credito,
+      //     valor_credito,
+      //     valor_total,
+      //     nombre_proyecto_17,
+      //     agrupacion_3,
+      //     comprador_nombre_4,
+      //     comprador_identificacion_4,
+      //     tipo_inmueble,
+      //     nombre_proyecto_18,
+      //     nombre_proyecto_19,
+      //     area_construida_total,
+      //   ],
+      // });
+
+      // Crear el sobre utilizando la plantilla
+      const envelopeDefinition = new docusign.EnvelopeDefinition();
+      envelopeDefinition.templateId = template_id;
+      envelopeDefinition.templateRoles = [signer1];
+      envelopeDefinition.status = "sent";
+
+      // Enviar el sobre
+      envelopesApi
+        .createEnvelope(process.env.DOCUSIGN_ACCOUNT_ID, {
+          envelopeDefinition,
+        })
+        .then((result) => {
+          resolve(result);
+          res.json(result);
+          return result;
+        })
+        .catch((error) => {
+          console.log(error);
+          reject(error);
+        });
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+app.post("/createCredit", getTokenDev, (req, res) => {
+  const { data } = req.body;
+
+  //try {
+    const body = {
+      "Tipo_De_Cuenta": data.tipo_cuenta,
+      cuenta: [
+        {
+          "Nombre": data.cuenta.nombre,
+          "Segundo_nombre": data.cuenta.segundo_nombre,
+          "Apellidos": data.cuenta.apellidos,
+          "Genero": data.cuenta.genero,
+          "Tipo_Documento": data.cuenta.tipo_documento,
+          "Celular": data.cuenta.celular,
+          "No_Documento": data.cuenta.numero_documento,
+          "Fecha_Nacimiento": data.cuenta.fecha_nacimiento,
+          "Fecha_Expedicion": data.cuenta.fecha_expedicion,
+          "Correo_electronico": data.cuenta.correo_electronico,
+          "Ocupacion": data.cuenta.ocupacion,
+          "Ingresos_Mensuales": data.cuenta.ingresos_mensuales,
+          "Ciudad_de_Nacimiento": data.cuenta.ciudad_nacimiento,
+        },
+      ],
+      juridicos: [
+        {
+          "Nombre_Corto": data.juridicos.nombre_corto,
+          "No_Documento_RepLegal": data.juridicos.no_documento_rep_legal,
+          "NIT": data.juridicos.nit,
+          "Tipo_de_Persona_Jurídica": data.juridicos.tipo_persona_juridica,
+          "Total_Activos": data.juridicos.total_activos,
+          "Total_Pasivos": data.juridicos.total_pasivos,
+        },
+      ],
+      credito: [
+        {
+          "Id_Tipo_Credito": data.credito.id_tipo_credito,
+          "Tipo_de_Poliza": data.credito.tipo_de_poliza,
+          "Tipo_Asegurado": data.credito.tipo_asegurado,
+          "Persona_Juridica": data.credito.persona_juridica,
+          //"Estado": data.credito.estado,
+          "Plazo_meses": data.credito.plazo_meses,
+          "Prima_Total": data.credito.prima_total,
+          "Abono_Inicial": data.credito.abono_inicial,
+          "Linea": data.credito.linea,
+          "Si_Aplica_Retefuente": data.credito.aplica_retefuente,
+          "No_Aplica_Retefuente": data.credito.no_aplica_retefuente,
+          "Placa_Vehiculo": data.credito.placa_vehiculo,
+          "No_Poliza": data.credito.no_poliza,
+          "Anexo": data.credito.anexo,
+          "Sucursal": data.credito.sucursal,
+          //"Intermediario": data.credito.intermediario,
+          //"Asesor_Comercial_Intermediario": data.credito.asesor_comercial_intermediario,
+          //"Oneroso": data.credito.oneroso,
+          //"Tasa_Mensual_Credito": data.credito.tasa_mensual_credito,
+          //"Tasa_Mora_Diaria": data.credito.tasa_mora_diaria,
+          "Tipo_Amortizacion": data.credito.tipo_amortizacion,
+          //"Vig_Inicial_Seguro": data.credito.vig_inicial_seguro,
+          //"Porcentaje_Intermediario" : data.credito.porcentaje_intermediario,
+        },
+      ],
+    };
+
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CrearCredMapfre/",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  // } catch (error) {
+  //   res.status(500).json({
+  //     error: `Ha ocurrido un problema con el servidor: ${error}`,
+  //   });
+  // }
 });
 
 app.listen(PORT, () => {

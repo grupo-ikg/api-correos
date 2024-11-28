@@ -1837,7 +1837,7 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
     credito: [
       {
         Id_Tipo_Credito: data.credito.id_tipo_credito,
-        Tipo_de_Poliza: data.credito.tipo_de_poliza,
+        //Tipo_de_Poliza: data.credito.tipo_de_poliza,
         Tipo_Asegurado: data.credito.tipo_asegurado,
         Persona_Juridica: data.credito.persona_juridica,
         //"Estado": data.credito.estado,

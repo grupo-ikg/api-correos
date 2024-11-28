@@ -1804,76 +1804,75 @@ app.post("/sendEnvelope", verifyToken, async (req, res) => {
 app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   const { data } = req.body;
 
-  //try {
-  const body = {
-    Tipo_De_Cuenta: data.tipo_cuenta,
-    cuenta: [
-      {
-        Nombre: data.cuenta.nombre,
-        Segundo_nombre: data.cuenta.segundo_nombre,
-        Apellidos: data.cuenta.apellidos,
-        Genero: data.cuenta.genero,
-        Tipo_Documento: data.cuenta.tipo_documento,
-        Celular: data.cuenta.celular,
-        No_Documento: data.cuenta.numero_documento,
-        Fecha_Nacimiento: data.cuenta.fecha_nacimiento,
-        Fecha_Expedicion: data.cuenta.fecha_expedicion,
-        Correo_electronico: data.cuenta.correo_electronico,
-        Ocupacion: data.cuenta.ocupacion,
-        Ingresos_Mensuales: data.cuenta.ingresos_mensuales,
-        Ciudad_de_Nacimiento: data.cuenta.ciudad_nacimiento,
-      },
-    ],
-    juridicos: [
-      {
-        Nombre_Corto: data.juridicos.nombre_corto,
-        No_Documento_RepLegal: data.juridicos.no_documento_rep_legal,
-        NIT: data.juridicos.nit,
-        Tipo_de_Persona_Jurídica: data.juridicos.tipo_persona_juridica,
-        Total_Activos: data.juridicos.total_activos,
-        Total_Pasivos: data.juridicos.total_pasivos,
-      },
-    ],
-    credito: [
-      {
-        Id_Tipo_Credito: data.credito.id_tipo_credito,
-        //Tipo_de_Poliza: data.credito.tipo_de_poliza,
-        Tipo_Asegurado: data.credito.tipo_asegurado,
-        Persona_Juridica: data.credito.persona_juridica,
-        //"Estado": data.credito.estado,
-        Plazo_meses: data.credito.plazo_meses,
-        Prima_Total: data.credito.prima_total,
-        Abono_Inicial: data.credito.abono_inicial,
-        Linea: data.credito.linea,
-        Si_Aplica_Retefuente: data.credito.aplica_retefuente,
-        No_Aplica_Retefuente: data.credito.no_aplica_retefuente,
-        Placa_Vehiculo: data.credito.placa_vehiculo,
-        No_Poliza: data.credito.no_poliza,
-        Anexo: data.credito.anexo,
-        Sucursal: data.credito.sucursal,
-        //"Intermediario": data.credito.intermediario,
-        //"Asesor_Comercial_Intermediario": data.credito.asesor_comercial_intermediario,
-        //"Oneroso": data.credito.oneroso,
-        //"Tasa_Mensual_Credito": data.credito.tasa_mensual_credito,
-        //"Tasa_Mora_Diaria": data.credito.tasa_mora_diaria,
-        Tipo_Amortizacion: data.credito.tipo_amortizacion,
-        //"Vig_Inicial_Seguro": data.credito.vig_inicial_seguro,
-        //"Porcentaje_Intermediario" : data.credito.porcentaje_intermediario,
-      },
-    ],
-  };
+  try {
+    const body = {
+      Tipo_De_Cuenta: data.tipo_cuenta,
+      cuenta: [
+        {
+          Nombre: data.cuenta.nombre,
+          Segundo_nombre: data.cuenta.segundo_nombre,
+          Apellidos: data.cuenta.apellidos,
+          Genero: data.cuenta.genero,
+          Tipo_Documento: data.cuenta.tipo_documento,
+          Celular: data.cuenta.celular,
+          No_Documento: data.cuenta.numero_documento,
+          Fecha_Nacimiento: data.cuenta.fecha_nacimiento,
+          Fecha_Expedicion: data.cuenta.fecha_expedicion,
+          Correo_electronico: data.cuenta.correo_electronico,
+          Ocupacion: data.cuenta.ocupacion,
+          Ingresos_Mensuales: data.cuenta.ingresos_mensuales,
+          Ciudad_de_Nacimiento: data.cuenta.ciudad_nacimiento,
+        },
+      ],
+      juridicos: [
+        {
+          Nombre_Corto: data.juridicos.nombre_corto,
+          No_Documento_RepLegal: data.juridicos.no_documento_rep_legal,
+          NIT: data.juridicos.nit,
+          Tipo_de_Persona_Jurídica: data.juridicos.tipo_persona_juridica,
+          Total_Activos: data.juridicos.total_activos,
+          Total_Pasivos: data.juridicos.total_pasivos,
+        },
+      ],
+      credito: [
+        {
+          Id_Tipo_Credito: data.credito.id_tipo_credito,
+          //Tipo_de_Poliza: data.credito.tipo_de_poliza,
+          Tipo_Asegurado: data.credito.tipo_asegurado,
+          Persona_Juridica: data.credito.persona_juridica,
+          //"Estado": data.credito.estado,
+          Plazo_meses: data.credito.plazo_meses,
+          Prima_Total: data.credito.prima_total,
+          Abono_Inicial: data.credito.abono_inicial,
+          Linea: data.credito.linea,
+          Si_Aplica_Retefuente: data.credito.aplica_retefuente,
+          No_Aplica_Retefuente: data.credito.no_aplica_retefuente,
+          Placa_Vehiculo: data.credito.placa_vehiculo,
+          No_Poliza: data.credito.no_poliza,
+          Anexo: data.credito.anexo,
+          Sucursal: data.credito.sucursal,
+          //"Intermediario": data.credito.intermediario,
+          //"Asesor_Comercial_Intermediario": data.credito.asesor_comercial_intermediario,
+          //"Oneroso": data.credito.oneroso,
+          //"Tasa_Mensual_Credito": data.credito.tasa_mensual_credito,
+          //"Tasa_Mora_Diaria": data.credito.tasa_mora_diaria,
+          Tipo_Amortizacion: data.credito.tipo_amortizacion,
+          //"Vig_Inicial_Seguro": data.credito.vig_inicial_seguro,
+          //"Porcentaje_Intermediario" : data.credito.porcentaje_intermediario,
+        },
+      ],
+    };
 
-  console.log(body);
 
-  axios({
-    method: "POST",
-    url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CrearCredMapfre/",
-    data: JSON.stringify(body),
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${req.token}`,
-    },
-  })
+    axios({
+      method: "POST",
+      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CrearCredMapfre/",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
     .then(({ data }) => {
       res.json(data);
     })
@@ -1882,11 +1881,11 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
         error: `Ha ocurrido un problema con el servidor: ${err}`,
       });
     });
-  // } catch (error) {
-  //   res.status(500).json({
-  //     error: `Ha ocurrido un problema con el servidor: ${error}`,
-  //   });
-  // }
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
 });
 
 app.post("/updateOppCavca", getTokenDevCavca, verifyToken, (req, res) => {

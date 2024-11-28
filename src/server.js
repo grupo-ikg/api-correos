@@ -175,6 +175,29 @@ async function createToken (userIdSender) {
   });
 };
 
+function getTokenDevCavca(req, res, next) {
+  try {
+    axios({
+      method: "POST",
+      url: "https://cavca--cotizador.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9xfrbKQ6hBytnC5pEE29nNkmzKUISBHM533rGfM..GayQeCLp4fguxblmS9.3_BpGN00MCoJMEMenNtpf&client_secret=E0C255B2B27D89D7E8D0B7D99F3F61276BFAD0697FCF9B8B914F450734F7647E&username=desarrolladorsc1@cavca.com.co.cotizador&password=Tecnologia2023/&grant_type=password",
+    })
+      .then(({ data }) => {
+        req.token = data.access_token;
+        next();
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+}
+
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
 
@@ -1778,90 +1801,161 @@ app.post("/sendEnvelope", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/createCredit", getTokenDev, (req, res) => {
+app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   const { data } = req.body;
 
   //try {
+  const body = {
+    Tipo_De_Cuenta: data.tipo_cuenta,
+    cuenta: [
+      {
+        Nombre: data.cuenta.nombre,
+        Segundo_nombre: data.cuenta.segundo_nombre,
+        Apellidos: data.cuenta.apellidos,
+        Genero: data.cuenta.genero,
+        Tipo_Documento: data.cuenta.tipo_documento,
+        Celular: data.cuenta.celular,
+        No_Documento: data.cuenta.numero_documento,
+        Fecha_Nacimiento: data.cuenta.fecha_nacimiento,
+        Fecha_Expedicion: data.cuenta.fecha_expedicion,
+        Correo_electronico: data.cuenta.correo_electronico,
+        Ocupacion: data.cuenta.ocupacion,
+        Ingresos_Mensuales: data.cuenta.ingresos_mensuales,
+        Ciudad_de_Nacimiento: data.cuenta.ciudad_nacimiento,
+      },
+    ],
+    juridicos: [
+      {
+        Nombre_Corto: data.juridicos.nombre_corto,
+        No_Documento_RepLegal: data.juridicos.no_documento_rep_legal,
+        NIT: data.juridicos.nit,
+        Tipo_de_Persona_Jurídica: data.juridicos.tipo_persona_juridica,
+        Total_Activos: data.juridicos.total_activos,
+        Total_Pasivos: data.juridicos.total_pasivos,
+      },
+    ],
+    credito: [
+      {
+        Id_Tipo_Credito: data.credito.id_tipo_credito,
+        Tipo_de_Poliza: data.credito.tipo_de_poliza,
+        Tipo_Asegurado: data.credito.tipo_asegurado,
+        Persona_Juridica: data.credito.persona_juridica,
+        //"Estado": data.credito.estado,
+        Plazo_meses: data.credito.plazo_meses,
+        Prima_Total: data.credito.prima_total,
+        Abono_Inicial: data.credito.abono_inicial,
+        Linea: data.credito.linea,
+        Si_Aplica_Retefuente: data.credito.aplica_retefuente,
+        No_Aplica_Retefuente: data.credito.no_aplica_retefuente,
+        Placa_Vehiculo: data.credito.placa_vehiculo,
+        No_Poliza: data.credito.no_poliza,
+        Anexo: data.credito.anexo,
+        Sucursal: data.credito.sucursal,
+        //"Intermediario": data.credito.intermediario,
+        //"Asesor_Comercial_Intermediario": data.credito.asesor_comercial_intermediario,
+        //"Oneroso": data.credito.oneroso,
+        //"Tasa_Mensual_Credito": data.credito.tasa_mensual_credito,
+        //"Tasa_Mora_Diaria": data.credito.tasa_mora_diaria,
+        Tipo_Amortizacion: data.credito.tipo_amortizacion,
+        //"Vig_Inicial_Seguro": data.credito.vig_inicial_seguro,
+        //"Porcentaje_Intermediario" : data.credito.porcentaje_intermediario,
+      },
+    ],
+  };
+
+  console.log(body);
+
+  axios({
+    method: "POST",
+    url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CrearCredMapfre/",
+    data: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${req.token}`,
+    },
+  })
+    .then(({ data }) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.status(500).json({
+        error: `Ha ocurrido un problema con el servidor: ${err}`,
+      });
+    });
+  // } catch (error) {
+  //   res.status(500).json({
+  //     error: `Ha ocurrido un problema con el servidor: ${error}`,
+  //   });
+  // }
+});
+
+app.post("/updateOppCavca", getTokenDevCavca, verifyToken, (req, res) => {
+  const { data } = req.body;
+
+  try {
     const body = {
-      "Tipo_De_Cuenta": data.tipo_cuenta,
-      cuenta: [
+      cedula: data.cedula,
+      placa: data.placa,
+      ListaDatos: [
         {
-          "Nombre": data.cuenta.nombre,
-          "Segundo_nombre": data.cuenta.segundo_nombre,
-          "Apellidos": data.cuenta.apellidos,
-          "Genero": data.cuenta.genero,
-          "Tipo_Documento": data.cuenta.tipo_documento,
-          "Celular": data.cuenta.celular,
-          "No_Documento": data.cuenta.numero_documento,
-          "Fecha_Nacimiento": data.cuenta.fecha_nacimiento,
-          "Fecha_Expedicion": data.cuenta.fecha_expedicion,
-          "Correo_electronico": data.cuenta.correo_electronico,
-          "Ocupacion": data.cuenta.ocupacion,
-          "Ingresos_Mensuales": data.cuenta.ingresos_mensuales,
-          "Ciudad_de_Nacimiento": data.cuenta.ciudad_nacimiento,
-        },
-      ],
-      juridicos: [
-        {
-          "Nombre_Corto": data.juridicos.nombre_corto,
-          "No_Documento_RepLegal": data.juridicos.no_documento_rep_legal,
-          "NIT": data.juridicos.nit,
-          "Tipo_de_Persona_Jurídica": data.juridicos.tipo_persona_juridica,
-          "Total_Activos": data.juridicos.total_activos,
-          "Total_Pasivos": data.juridicos.total_pasivos,
-        },
-      ],
-      credito: [
-        {
-          "Id_Tipo_Credito": data.credito.id_tipo_credito,
-          "Tipo_de_Poliza": data.credito.tipo_de_poliza,
-          "Tipo_Asegurado": data.credito.tipo_asegurado,
-          "Persona_Juridica": data.credito.persona_juridica,
-          //"Estado": data.credito.estado,
-          "Plazo_meses": data.credito.plazo_meses,
-          "Prima_Total": data.credito.prima_total,
-          "Abono_Inicial": data.credito.abono_inicial,
-          "Linea": data.credito.linea,
-          "Si_Aplica_Retefuente": data.credito.aplica_retefuente,
-          "No_Aplica_Retefuente": data.credito.no_aplica_retefuente,
-          "Placa_Vehiculo": data.credito.placa_vehiculo,
-          "No_Poliza": data.credito.no_poliza,
-          "Anexo": data.credito.anexo,
-          "Sucursal": data.credito.sucursal,
-          //"Intermediario": data.credito.intermediario,
-          //"Asesor_Comercial_Intermediario": data.credito.asesor_comercial_intermediario,
-          //"Oneroso": data.credito.oneroso,
-          //"Tasa_Mensual_Credito": data.credito.tasa_mensual_credito,
-          //"Tasa_Mora_Diaria": data.credito.tasa_mora_diaria,
-          "Tipo_Amortizacion": data.credito.tipo_amortizacion,
-          //"Vig_Inicial_Seguro": data.credito.vig_inicial_seguro,
-          //"Porcentaje_Intermediario" : data.credito.porcentaje_intermediario,
+          IdCotizacion: data.IdCotizacion,           
+          Bolivar_Premium: data.Bolivar_Premium ,
+          HDI_Livianos_Full: data.HDI_Livianos_Full ,
+          Bolivar_Estandar: data.Bolivar_Estandar ,
+          AXAPlusAsis_Plus: data.AXAPlusAsis_Plus ,
+          Bolivar_Clasico: data.Bolivar_Clasico ,
+          AXAPlusAsis_VIP: data.AXAPlusAsis_VIP ,
+          SBS_OtrasCiudades: data.SBS_OtrasCiudades ,
+          Mapfre_ParaLaMujer: data.Mapfre_ParaLaMujer ,
+          SBS_Full: data.SBS_Full ,
+          Mapfre_SuperTrebol: data.Mapfre_SuperTrebol ,
+          SBS_Estandar: data.SBS_Estandar ,
+          Mapfre_TrebolBasico: data.Mapfre_TrebolBasico ,
+          Equidad_AutoPlusFull_Elite: data.Equidad_AutoPlusFull_Elite ,
+          Liberty_Premium_ConVidrios: data.Liberty_Premium_ConVidrios ,
+          Sura_Global: data.Sura_Global ,
+          Liberty_Premium: data.Liberty_Premium ,
+          Sura_Clasico: data.Sura_Clasico ,
+          Liberty_Integral: data.Liberty_Integral ,
+          Zurich_Full: data.Zurich_Full ,
+          Liberty_Silver2_VehiculoSustituto: data.Liberty_Silver2_VehiculoSustituto ,
+          Zurich_Basico: data.Zurich_Basico ,
+          Liberty_Silver1_VehiculoSustituto: data.Liberty_Silver1_VehiculoSustituto ,
+          Solidaria_Elite: data.Solidaria_Elite ,
+          Liberty_Basico_PT: data.Liberty_Basico_PT ,
+          Solidaria_Premium: data.Solidaria_Premium ,
+          Liberty_Bronze1: data.Liberty_Bronze1 ,
+          Solidaria_Plus: data.Solidaria_Plus ,
+          Previsora_Full: data.Previsora_Full ,
+          Previsora_Estandar: data.Previsora_Estandar ,
+          Seg_Estado_Inv_Cavca: data.Seg_Estado_Inv_Cavca ,
+          AXA_Vip_asis_esencial: data.AXA_Vip_asis_esencial ,
         },
       ],
     };
 
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/apexrest/V1/CrearCredMapfre/",
+      url: "https://cavca--cotizador.sandbox.my.salesforce.com/services/apexrest/V1/UpdateOpp",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
     })
-      .then(({ data }) => {
-        res.json(data);
-      })
-      .catch((err) => {
-        res.status(500).json({
-          error: `Ha ocurrido un problema con el servidor: ${err}`,
-        });
+    .then(({ data }) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.status(500).json({
+        error: `Ha ocurrido un problema con el servidor: ${err}`,
       });
-  // } catch (error) {
-  //   res.status(500).json({
-  //     error: `Ha ocurrido un problema con el servidor: ${error}`,
-  //   });
-  // }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
 });
 
 app.listen(PORT, () => {

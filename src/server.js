@@ -197,6 +197,28 @@ function getTokenDevCavca(req, res, next) {
   }
 }
 
+function getTokenCavca(req, res, next) {
+  try {
+    axios({
+      method: "POST",
+      url: "https://cavca.my.salesforce.com/services/oauth2/token?client_id=3MVG9xOCXq4ID1uEenhA9sUsBPKBncjaQqzr727l.kNd8XorJCr9PPXuo_.jqS35HDHdbUhDzM2PhIuo5QG1a&client_secret=1641A15D74802AA565C323F7AA9D358141D36518D7CE6113842B0FCA0B3EB547&username=desarrolladorsc1@cavca.com.co&password=Tecnologia2025&grant_type=password",
+    })
+      .then(({ data }) => {
+        req.token = data.access_token;
+        next();
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+}
+
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
@@ -1888,7 +1910,7 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   }
 });
 
-app.post("/updateOppCavca", getTokenDevCavca, verifyToken, (req, res) => {
+app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   const { data } = req.body;
 
   try {
@@ -1897,59 +1919,61 @@ app.post("/updateOppCavca", getTokenDevCavca, verifyToken, (req, res) => {
       placa: data.placa,
       ListaDatos: [
         {
-          IdCotizacion: data.IdCotizacion,           
-          Bolivar_Premium: data.Bolivar_Premium ,
-          HDI_Livianos_Full: data.HDI_Livianos_Full ,
-          Bolivar_Estandar: data.Bolivar_Estandar ,
-          AXAPlusAsis_Plus: data.AXAPlusAsis_Plus ,
-          Bolivar_Clasico: data.Bolivar_Clasico ,
-          AXAPlusAsis_VIP: data.AXAPlusAsis_VIP ,
-          SBS_OtrasCiudades: data.SBS_OtrasCiudades ,
-          Mapfre_ParaLaMujer: data.Mapfre_ParaLaMujer ,
-          SBS_Full: data.SBS_Full ,
-          Mapfre_SuperTrebol: data.Mapfre_SuperTrebol ,
-          SBS_Estandar: data.SBS_Estandar ,
-          Mapfre_TrebolBasico: data.Mapfre_TrebolBasico ,
-          Equidad_AutoPlusFull_Elite: data.Equidad_AutoPlusFull_Elite ,
-          Liberty_Premium_ConVidrios: data.Liberty_Premium_ConVidrios ,
-          Sura_Global: data.Sura_Global ,
-          Liberty_Premium: data.Liberty_Premium ,
-          Sura_Clasico: data.Sura_Clasico ,
-          Liberty_Integral: data.Liberty_Integral ,
-          Zurich_Full: data.Zurich_Full ,
-          Liberty_Silver2_VehiculoSustituto: data.Liberty_Silver2_VehiculoSustituto ,
-          Zurich_Basico: data.Zurich_Basico ,
-          Liberty_Silver1_VehiculoSustituto: data.Liberty_Silver1_VehiculoSustituto ,
-          Solidaria_Elite: data.Solidaria_Elite ,
-          Liberty_Basico_PT: data.Liberty_Basico_PT ,
-          Solidaria_Premium: data.Solidaria_Premium ,
-          Liberty_Bronze1: data.Liberty_Bronze1 ,
-          Solidaria_Plus: data.Solidaria_Plus ,
-          Previsora_Full: data.Previsora_Full ,
-          Previsora_Estandar: data.Previsora_Estandar ,
-          Seg_Estado_Inv_Cavca: data.Seg_Estado_Inv_Cavca ,
-          AXA_Vip_asis_esencial: data.AXA_Vip_asis_esencial ,
+          IdCotizacion: data.IdCotizacion,
+          Bolivar_Premium: data.Bolivar_Premium,
+          HDI_Livianos_Full: data.HDI_Livianos_Full,
+          Bolivar_Estandar: data.Bolivar_Estandar,
+          AXAPlusAsis_Plus: data.AXAPlusAsis_Plus,
+          Bolivar_Clasico: data.Bolivar_Clasico,
+          AXAPlusAsis_VIP: data.AXAPlusAsis_VIP,
+          SBS_OtrasCiudades: data.SBS_OtrasCiudades,
+          Mapfre_ParaLaMujer: data.Mapfre_ParaLaMujer,
+          SBS_Full: data.SBS_Full,
+          Mapfre_SuperTrebol: data.Mapfre_SuperTrebol,
+          SBS_Estandar: data.SBS_Estandar,
+          Mapfre_TrebolBasico: data.Mapfre_TrebolBasico,
+          Equidad_AutoPlusFull_Elite: data.Equidad_AutoPlusFull_Elite,
+          Liberty_Premium_ConVidrios: data.Liberty_Premium_ConVidrios,
+          Sura_Global: data.Sura_Global,
+          Liberty_Premium: data.Liberty_Premium,
+          Sura_Clasico: data.Sura_Clasico,
+          Liberty_Integral: data.Liberty_Integral,
+          Zurich_Full: data.Zurich_Full,
+          Liberty_Silver2_VehiculoSustituto:
+            data.Liberty_Silver2_VehiculoSustituto,
+          Zurich_Basico: data.Zurich_Basico,
+          Liberty_Silver1_VehiculoSustituto:
+            data.Liberty_Silver1_VehiculoSustituto,
+          Solidaria_Elite: data.Solidaria_Elite,
+          Liberty_Basico_PT: data.Liberty_Basico_PT,
+          Solidaria_Premium: data.Solidaria_Premium,
+          Liberty_Bronze1: data.Liberty_Bronze1,
+          Solidaria_Plus: data.Solidaria_Plus,
+          Previsora_Full: data.Previsora_Full,
+          Previsora_Estandar: data.Previsora_Estandar,
+          Seg_Estado_Inv_Cavca: data.Seg_Estado_Inv_Cavca,
+          AXA_Vip_asis_esencial: data.AXA_Vip_asis_esencial,
         },
       ],
     };
 
     axios({
       method: "POST",
-      url: "https://cavca--cotizador.sandbox.my.salesforce.com/services/apexrest/V1/UpdateOpp",
+      url: "https://cavca.my.salesforce.com/services/apexrest/V1/UpdateOpp",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
     })
-    .then(({ data }) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: `Ha ocurrido un problema con el servidor: ${err}`,
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
       });
-    });
   } catch (error) {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor: ${error}`,

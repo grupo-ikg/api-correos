@@ -7,6 +7,7 @@ const cors = require("cors");
 const docusign = require("docusign-esign");
 const fs = require("fs");
 const path = require("path");
+const basicAuth = require("basic-auth");
 
 const app = express();
 
@@ -14,6 +15,10 @@ const PORT = process.env.PORT || 4000;
 const jwt = require("jsonwebtoken");
 const tokenExpiration = "1h";
 const secretKey = process.env.SECRET_JWT;
+
+const swStats = require("swagger-stats");
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -25,6 +30,54 @@ const transporter = nodemailer.createTransport({
     pass: "Wil3224601736@", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
+
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      version: "1.0.0",
+      title: "API de backend - bridge",
+      description: "Documentación de la API de backend de puente para conexiones con diferentes plataformas",
+      contact: {
+        name: "Cavca",
+        url: "https://cavcaseguros.com/",
+      },
+      servers: ["http://localhost:4000","https://crediseguro-back.click/"],
+    },
+    components: {
+      securitySchemes: {
+        ApiTokenAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "Authorization",
+          description: "Token de autorización generado por la API",
+        },
+      },
+    },
+    security: [{ ApiTokenAuth: [] }],
+  },
+  basePath: "/",
+  apis: ["src/server.js"],
+};
+
+// Autenticación básica para acceder a Swagger
+const authenticateSwagger = (req, res, next) => {
+  const user = basicAuth(req);
+  if (!user || user.name !== "docs-user" || user.pass !== "pass2025*") {
+    res.setHeader("WWW-Authenticate", 'Basic realm="Swagger API"');
+    return res.status(401).send("Acceso no autorizado");
+  }
+  next();
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
+app.use(
+  "/api-docs",
+  authenticateSwagger,
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocs)
+);
 
 function getToken(req, res, next) {
   try {
@@ -219,12 +272,77 @@ function getTokenCavca(req, res, next) {
   }
 }
 
+app.use(
+  swStats.getMiddleware({
+    name: "api-catalog",
+    authentication: true,
+    onAuthenticate: function (req, username, password) {
+      // simple check for username and password
+      return username === "admin" && password === "pass2025*";
+    },
+    elasticsearch: "http://myelastic.com:9200",
+    elasticsearchUsername: "admin",
+    elasticsearchPassword: "secret",
+    elasticsearchIndexPrefix: "book-catalog-",
+  })
+);
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb" }));
 
 app.use(cors());
 
+/**
+ * @swagger
+ * /generate-token:
+ *   get:
+ *     summary: Generate authentication token
+ *     tags:
+ *       - token
+ *     description: Generates a token based on the provided clientId and clientSecret.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: clientId
+ *         description: The client ID required for token generation.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: clientSecret
+ *         description: The client secret required for token generation.
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 auth:
+ *                   type: boolean
+ *                   example: true
+ *                 token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR..."
+ *       401:
+ *         description: Unauthorized. Token generation failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 auth:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid clientId or clientSecret"
+ */
 app.get("/generate-token", (req, res) => {
   const { clientId, clientSecret } = req.query;
 
@@ -236,7 +354,59 @@ app.get("/generate-token", (req, res) => {
   }
 });
 
-//envio de correos
+/**
+ * @swagger
+ * /send:
+ *   post:
+ *     summary: Send an email
+ *     tags:
+ *       - mail
+ *     description: Sends an email with the specified details.
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           required:
+ *             - destinatario
+ *             - asunto
+ *             - mensaje
+ *             - codigo
+ *           properties:
+ *             destinatario:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               description: List of email recipients.
+ *               example: ["recipient1@example.com", "recipient2@example.com"]
+ *             asunto:
+ *               type: string
+ *               description: Subject of the email.
+ *               example: "Test Subject"
+ *             mensaje:
+ *               type: string
+ *               description: Plain text content of the email.
+ *               example: "This is a test email."
+ *             codigo:
+ *               type: string
+ *               description: HTML content of the email.
+ *               example: "<h1>Email Content</h1>"
+ *     responses:
+ *       200:
+ *         description: Email sent successfully.
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Correo electrónico enviado con éxito"
+ *       500:
+ *         description: Failed to send the email.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Error al enviar el correo electrónico"
+ */
+
 app.post("/send", (req, res) => {
   const { destinatario, asunto, mensaje, codigo } = req.body;
 
@@ -259,7 +429,99 @@ app.post("/send", (req, res) => {
   });
 });
 
-//envio de archivos
+/**
+ * @swagger
+ * /sendDocs:
+ *   post:
+ *     summary: Send email with attached documents
+ *     tags:
+ *       - mail
+ *     description: Sends an email with specified parameters and attached documents.
+ *     parameters:
+ *       - name: type
+ *         in: query
+ *         description: Type of email (e.g., "doc").
+ *         required: false
+ *         schema:
+ *           type: string
+ *         example: "doc"
+ *       - name: sender
+ *         in: query
+ *         description: Email addresses of the recipients, separated by commas.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "recipient1@example.com,recipient2@example.com"
+ *       - name: subject
+ *         in: query
+ *         description: Subject of the email.
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "Document Submission"
+ *       - name: text
+ *         in: query
+ *         description: Text content of the email.
+ *         required: false
+ *         schema:
+ *           type: string
+ *         example: "Please find the attached documents."
+ *       - name: document
+ *         in: query
+ *         description: Document identifier.
+ *         required: false
+ *         schema:
+ *           type: string
+ *         example: "123456"
+ *       - name: plate
+ *         in: query
+ *         description: Plate number (if applicable).
+ *         required: false
+ *         schema:
+ *           type: string
+ *         example: "XYZ123"
+ *       - name: message
+ *         in: query
+ *         description: Message to include in the email.
+ *         required: false
+ *         schema:
+ *           type: string
+ *         example: "Attached is your requested document."
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cc:
+ *                 type: string
+ *                 format: binary
+ *                 description: Attach a file (e.g., CC document).
+ *               policy:
+ *                 type: string
+ *                 format: binary
+ *                 description: Attach a file (e.g., policy document).
+ *               other:
+ *                 type: string
+ *                 format: binary
+ *                 description: Attach any other file.
+ *     responses:
+ *       200:
+ *         description: Email sent successfully.
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Correo electrónico enviado con éxito"
+ *               status: 200
+ *       500:
+ *         description: Failed to send the email.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Error al enviar el correo electrónico"
+ */
+
 app.post("/sendDocs", upload.any(), (req, res) => {
   const docs = req.files;
 
@@ -314,7 +576,60 @@ app.post("/sendDocs", upload.any(), (req, res) => {
   });
 });
 
-// obtener ciudades de salesforce - migrar a salesforce
+/**
+ * @swagger
+ * /getLocation:
+ *   post:
+ *     summary: Get location data based on the given parameters.
+ *     tags:
+ *       - general
+ *     description: Fetches department and city data from Salesforce based on provided filters.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains filters for the department and city.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             id_department:
+ *               type: string
+ *               description: The ID of the department to filter by.
+ *             get_cities:
+ *               type: boolean
+ *               description: Whether to retrieve cities.
+ *             get_departments:
+ *               type: boolean
+ *               description: Whether to retrieve departments.
+ *           required:
+ *             - id_department
+ *             - get_cities
+ *             - get_departments
+ *     responses:
+ *       200:
+ *         description: Location data fetched successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   description: The fetched location data from Salesforce.
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/getLocation", getToken, (req, res) => {
   const { id_department, get_cities, get_departments } = req.body;
 
@@ -348,7 +663,148 @@ app.post("/getLocation", getToken, (req, res) => {
   }
 });
 
-// envio de formulario de crediseguro salesforce
+/**
+ * @swagger
+ * /sendFormNewCredit:
+ *   post:
+ *     summary: Send new credit form data to Salesforce.
+ *     tags:
+ *       - salesforce
+ *     description: Sends personal and credit information to Salesforce for processing.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains the new credit application data.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             req_type:
+ *               type: string
+ *               description: The type of the request (e.g., new credit, modification).
+ *             first_name:
+ *               type: string
+ *               description: The first name of the applicant.
+ *             last_name:
+ *               type: string
+ *               description: The last name of the applicant.
+ *             doc_type:
+ *               type: string
+ *               description: The type of document (e.g., ID, passport).
+ *             num_document:
+ *               type: string
+ *               description: The document number.
+ *             birthdate:
+ *               type: string
+ *               format: date
+ *               description: The birthdate of the applicant.
+ *             genre:
+ *               type: string
+ *               description: The gender of the applicant.
+ *             email:
+ *               type: string
+ *               description: The email address of the applicant.
+ *             phone:
+ *               type: string
+ *               description: The phone number of the applicant.
+ *             job:
+ *               type: string
+ *               description: The job occupation of the applicant.
+ *             salary:
+ *               type: number
+ *               description: The salary of the applicant.
+ *             city:
+ *               type: string
+ *               description: The city where the applicant resides.
+ *             address:
+ *               type: string
+ *               description: The address of the applicant.
+ *             num_policy:
+ *               type: string
+ *               description: The policy number associated with the applicant.
+ *             insurer_place:
+ *               type: string
+ *               description: The place of the insurer.
+ *             insurer:
+ *               type: string
+ *               description: The insurer name.
+ *             name_broker:
+ *               type: string
+ *               description: The name of the broker.
+ *             nit_broker:
+ *               type: string
+ *               description: The NIT of the broker.
+ *             broker:
+ *               type: string
+ *               description: The broker responsible for the credit.
+ *             plate:
+ *               type: string
+ *               description: The vehicle plate number, if applicable.
+ *             init_term:
+ *               type: string
+ *               description: The initial term of the credit.
+ *             total_annual:
+ *               type: number
+ *               description: The total annual premium for the credit.
+ *             init_credit:
+ *               type: number
+ *               description: The initial amount of the credit.
+ *             num_shares:
+ *               type: number
+ *               description: The number of shares in the credit agreement.
+ *           required:
+ *             - req_type
+ *             - first_name
+ *             - last_name
+ *             - doc_type
+ *             - num_document
+ *             - birthdate
+ *             - genre
+ *             - email
+ *             - phone
+ *             - job
+ *             - salary
+ *             - city
+ *             - address
+ *             - num_policy
+ *             - insurer_place
+ *             - insurer
+ *             - name_broker
+ *             - nit_broker
+ *             - broker
+ *             - plate
+ *             - init_term
+ *             - total_annual
+ *             - init_credit
+ *             - num_shares
+ *     responses:
+ *       200:
+ *         description: Information sent successfully to Salesforce.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información enviada exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/sendFormNewCredit", getToken, (req, res) => {
   const {
     req_type,
@@ -425,7 +881,111 @@ app.post("/sendFormNewCredit", getToken, (req, res) => {
   }
 });
 
-// envio de formulario de crediseguro renovaciones salesforce
+/**
+ * @swagger
+ * /sendFormRenovation:
+ *   post:
+ *     summary: Send renovation credit form data to Salesforce.
+ *     tags:
+ *       - salesforce
+ *     description: Sends personal and renovation credit information to Salesforce for processing.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains the renovation credit application data.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             req_type:
+ *               type: string
+ *               description: The type of the request (e.g., credit renewal).
+ *             first_name:
+ *               type: string
+ *               description: The first name of the applicant.
+ *             last_name:
+ *               type: string
+ *               description: The last name of the applicant.
+ *             doc_type:
+ *               type: string
+ *               description: The type of document (e.g., ID, passport).
+ *             num_document:
+ *               type: string
+ *               description: The document number.
+ *             num_policy:
+ *               type: string
+ *               description: The policy number associated with the applicant.
+ *             insurer:
+ *               type: string
+ *               description: The insurer name.
+ *             name_broker:
+ *               type: string
+ *               description: The name of the broker.
+ *             nit_broker:
+ *               type: string
+ *               description: The NIT of the broker.
+ *             broker:
+ *               type: string
+ *               description: The broker responsible for the credit.
+ *             plate:
+ *               type: string
+ *               description: The vehicle plate number, if applicable.
+ *             init_term:
+ *               type: string
+ *               description: The initial term of the credit.
+ *             total_annual:
+ *               type: number
+ *               description: The total annual premium for the credit.
+ *             init_credit:
+ *               type: number
+ *               description: The initial amount of the credit.
+ *             num_shares:
+ *               type: number
+ *               description: The number of shares in the credit agreement.
+ *           required:
+ *             - req_type
+ *             - first_name
+ *             - last_name
+ *             - doc_type
+ *             - num_document
+ *             - num_policy
+ *             - insurer
+ *             - name_broker
+ *             - nit_broker
+ *             - broker
+ *             - plate
+ *             - init_term
+ *             - total_annual
+ *             - init_credit
+ *             - num_shares
+ *     responses:
+ *       200:
+ *         description: Information sent successfully to Salesforce.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información enviada exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/sendFormRenovation", getToken, (req, res) => {
   const {
     req_type,
@@ -484,7 +1044,104 @@ app.post("/sendFormRenovation", getToken, (req, res) => {
   }
 });
 
-//envio documento de identidad OCR
+/**
+ * @swagger
+ * /sendDocument:
+ *   post:
+ *     summary: Send document data to Salesforce and notify via Google Chat.
+ *     tags:
+ *       - salesforce
+ *     description: Sends personal and document data to Salesforce, including file information, and sends a notification to a Google Chat space.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains the document data and associated file information.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             Id:
+ *               type: string
+ *               description: The unique identifier of the person.
+ *             NumeroDoc:
+ *               type: string
+ *               description: The document number of the person.
+ *             Nombres:
+ *               type: string
+ *               description: The first name of the person.
+ *             Apellidos:
+ *               type: string
+ *               description: The last name of the person.
+ *             FechaNacimiento:
+ *               type: string
+ *               format: date
+ *               description: The birthdate of the person.
+ *             LugarNacimiento:
+ *               type: string
+ *               description: The place of birth of the person.
+ *             FechaExpedicion:
+ *               type: string
+ *               format: date
+ *               description: The date of issuance of the document.
+ *             LugarExpedicion:
+ *               type: string
+ *               description: The place where the document was issued.
+ *             Sexo:
+ *               type: string
+ *               description: The gender of the person.
+ *             fileName:
+ *               type: string
+ *               description: The name of the document file.
+ *             fileBody:
+ *               type: string
+ *               description: The base64 encoded content of the document file.
+ *             fileExtension:
+ *               type: string
+ *               description: The file extension (e.g., pdf, jpg).
+ *           required:
+ *             - Id
+ *             - NumeroDoc
+ *             - Nombres
+ *             - Apellidos
+ *             - FechaNacimiento
+ *             - LugarNacimiento
+ *             - FechaExpedicion
+ *             - LugarExpedicion
+ *             - Sexo
+ *             - fileName
+ *             - fileBody
+ *             - fileExtension
+ *     responses:
+ *       200:
+ *         description: Information sent successfully to Salesforce and Google Chat.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información enviada exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   description: The response data from Salesforce.
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/sendDocument", getToken, (req, res) => {
   const {
     Id,
@@ -574,7 +1231,71 @@ app.post("/sendDocument", getToken, (req, res) => {
   }
 });
 
-//envio documento de poliza de aseguradora OCR
+/**
+ * @swagger
+ * /sendDocPoliza:
+ *   post:
+ *     summary: Send insurance policy document to Salesforce and notify via Google Chat.
+ *     tags:
+ *       - salesforce
+ *     description: Sends insurance policy document data to Salesforce and sends a notification to a Google Chat space.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains the insurance policy document data and associated file information.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             Id:
+ *               type: string
+ *               description: The unique identifier of the document.
+ *             fileName:
+ *               type: string
+ *               description: The name of the document file.
+ *             fileBody:
+ *               type: string
+ *               description: The base64 encoded content of the document file.
+ *             fileExtension:
+ *               type: string
+ *               description: The file extension (e.g., pdf, jpg).
+ *           required:
+ *             - Id
+ *             - fileName
+ *             - fileBody
+ *             - fileExtension
+ *     responses:
+ *       200:
+ *         description: Information sent successfully to Salesforce and Google Chat.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información enviada exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   description: The response data from Salesforce.
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
+
 app.post("/sendDocPoliza", getToken, (req, res) => {
   const { Id, fileName, fileBody, fileExtension } = req.body;
 
@@ -635,7 +1356,205 @@ app.post("/sendDocPoliza", getToken, (req, res) => {
   }
 });
 
-// envio de datos poliza desde OCR
+/**
+ * @swagger
+ * /sendPoliza:
+ *   post:
+ *     summary: Send insurance policy data to Salesforce and notify via Google Chat.
+ *     tags:
+ *       - salesforce
+ *     description: Sends insurance policy data to Salesforce and sends a notification to a Google Chat space with the provided policy details.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: The body contains the insurance policy data to be sent to Salesforce and used for notification.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             Id:
+ *               type: string
+ *               description: The unique identifier for the policy.
+ *             IdAseguradora:
+ *               type: string
+ *               description: The insurer's unique identifier.
+ *             Cod_Sucursal:
+ *               type: string
+ *               description: The branch code of the insurer.
+ *             Nombre_Sucursal:
+ *               type: string
+ *               description: The name of the branch.
+ *             Poliza_No:
+ *               type: string
+ *               description: The policy number.
+ *             Vigencia_Desde:
+ *               type: string
+ *               format: date
+ *               description: The start date of the policy.
+ *             Vigencia_Hasta:
+ *               type: string
+ *               format: date
+ *               description: The end date of the policy.
+ *             Producto:
+ *               type: string
+ *               description: The product related to the policy.
+ *             Fecha_Solicitud:
+ *               type: string
+ *               format: date
+ *               description: The request date for the policy.
+ *             Tomador:
+ *               type: string
+ *               description: The policyholder's name.
+ *             Direccion_Tomador:
+ *               type: string
+ *               description: The policyholder's address.
+ *             Ciudad_Tomador:
+ *               type: string
+ *               description: The city of the policyholder.
+ *             Doc_Tomador:
+ *               type: string
+ *               description: The document number of the policyholder.
+ *             Telefono_Tomador:
+ *               type: string
+ *               description: The phone number of the policyholder.
+ *             Asegurado:
+ *               type: string
+ *               description: The insured person's name.
+ *             Ciudad_Asegurado:
+ *               type: string
+ *               description: The insured person's city.
+ *             Direccion_Asegurado:
+ *               type: string
+ *               description: The insured person's address.
+ *             Doc_Asegurado:
+ *               type: string
+ *               description: The document number of the insured person.
+ *             Telefono_Asegurado:
+ *               type: string
+ *               description: The phone number of the insured person.
+ *             Ciudad_Beneficiario:
+ *               type: string
+ *               description: The beneficiary's city.
+ *             Direccion_Beneficiario:
+ *               type: string
+ *               description: The beneficiary's address.
+ *             Doc_Beneficiario:
+ *               type: string
+ *               description: The document number of the beneficiary.
+ *             Telefono_Beneficiario:
+ *               type: string
+ *               description: The phone number of the beneficiary.
+ *             Genero_Asegurado:
+ *               type: string
+ *               description: The gender of the insured person.
+ *             Placa:
+ *               type: string
+ *               description: The vehicle license plate number.
+ *             Modelo:
+ *               type: string
+ *               description: The vehicle model.
+ *             Total_Prima:
+ *               type: string
+ *               description: The total premium amount.
+ *             Intermediarios:
+ *               type: string
+ *               description: The intermediaries involved in the policy.
+ *             No_Riesgo:
+ *               type: string
+ *               description: The risk number associated with the policy.
+ *             Email_Tomador:
+ *               type: string
+ *               description: The policyholder's email address.
+ *             Fecha_Nacimiento_Asegurado:
+ *               type: string
+ *               format: date
+ *               description: The insured person's birth date.
+ *             Email_Asegurado:
+ *               type: string
+ *               description: The insured person's email address.
+ *             Email_Beneficiario:
+ *               type: string
+ *               description: The beneficiary's email address.
+ *             Clase_de_Vehiculo:
+ *               type: string
+ *               description: The type of vehicle class.
+ *             Ciudad_de_Circulacion:
+ *               type: string
+ *               description: The city where the vehicle is circulated.
+ *             Ramo:
+ *               type: string
+ *               description: The policy type.
+ *             Linea:
+ *               type: string
+ *               description: The policy line.
+ *             Beneficiario:
+ *               type: string
+ *               description: The beneficiary's name.
+ *             No_Certificado:
+ *               type: string
+ *               description: The certificate number.
+ *             Prima_NetaHDI:
+ *               type: string
+ *               description: The net premium.
+ *             Numero_Electronico:
+ *               type: string
+ *               description: The electronic number of the policy.
+ *             Codigo_Agente:
+ *               type: string
+ *               description: The agent code.
+ *             Anexo:
+ *               type: string
+ *               description: Any annexes related to the policy.
+ *             Documento_Poliza:
+ *               type: string
+ *               description: The policy document file.
+ *             tipoVehiculo:
+ *               type: string
+ *               description: The vehicle type.
+ *             oficina:
+ *               type: string
+ *               description: The office associated with the policy.
+ *             rechazoOCR:
+ *               type: string
+ *               description: A flag indicating rejection of OCR.
+ *           required:
+ *             - Id
+ *             - Poliza_No
+ *             - Vigencia_Desde
+ *             - Doc_Tomador
+ *             - Placa
+ *             - Total_Prima
+ *     responses:
+ *       200:
+ *         description: Insurance policy information successfully sent to Salesforce and Google Chat.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información enviada exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   description: The response data from Salesforce.
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/sendPoliza", getToken, (req, res) => {
   const {
     Id,
@@ -775,7 +1694,51 @@ app.post("/sendPoliza", getToken, (req, res) => {
   }
 });
 
-// obtener informacion de poliza  - migrar
+/**
+ * @swagger
+ * /getPoliza/{id}:
+ *   get:
+ *     summary: Get policy details by ID from Salesforce.
+ *     tags:
+ *       - salesforce
+ *     description: Fetches the details of an insurance policy from Salesforce using the provided policy ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique identifier for the insurance policy.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the policy information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información obtenida exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   description: The policy details fetched from Salesforce.
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
+
 app.get("/getPoliza/:id", getToken, (req, res) => {
   axios({
     method: "GET",
@@ -793,7 +1756,84 @@ app.get("/getPoliza/:id", getToken, (req, res) => {
   });
 });
 
-// obtener informacion de documento  - migrar
+/**
+ * @swagger
+ * /getDocument/{document}:
+ *   get:
+ *     summary: Get client document details with masked email and phone.
+ *     tags:
+ *       - salesforce
+ *     description: Retrieves client information from Salesforce based on the provided document ID, including masking part of the email and phone number for privacy.
+ *     parameters:
+ *       - in: path
+ *         name: document
+ *         required: true
+ *         description: The document identifier to retrieve client information.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the document information with email and phone masked.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información obtenida exitosamente"
+ *                 status:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     Tipodocumento:
+ *                       type: string
+ *                       example: "DNI"
+ *                     Phone:
+ *                       type: string
+ *                       example: "12345******67"
+ *                     Nombre:
+ *                       type: string
+ *                       example: "Juan Pérez"
+ *                     NoDocumento:
+ *                       type: string
+ *                       example: "123456789"
+ *                     IdCliente:
+ *                       type: string
+ *                       example: "001VF000000xUJpYAM"
+ *                     Email:
+ *                       type: string
+ *                       example: "juan*****@gmail.com"
+ *       404:
+ *         description: Client information not found for the given document ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Información no encontrada"
+ *                 status:
+ *                   type: integer
+ *                   example: 404
+ *                 data:
+ *                   type: string
+ *                   example: ""
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.get("/getDocument/:document", getToken, (req, res) => {
   axios({
     method: "GET",
@@ -857,7 +1897,57 @@ app.get("/getDocument/:document", getToken, (req, res) => {
   });
 });
 
-// actualizar cuenta druo
+/**
+ * @swagger
+ * /updateAccountDruo:
+ *   post:
+ *     tags:
+ *       - salesforce
+ *     summary: Update the Druo account with bank account details.
+ *     description: This endpoint updates the Druo account information in Salesforce by associating a primary reference ID with a bank account UUID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   primary_reference:
+ *                     type: string
+ *                     example: "123456789"
+ *                   uuid:
+ *                     type: string
+ *                     example: "abcd-1234-efgh-5678"
+ *     responses:
+ *       200:
+ *         description: Successfully updated the account in Salesforce.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Account updated successfully."
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
+
 app.post("/updateAccountDruo", getToken, (req, res) => {
   const { data } = req.body;
 
@@ -893,7 +1983,63 @@ app.post("/updateAccountDruo", getToken, (req, res) => {
   }
 });
 
-// actualizar pago druo
+/**
+ * @swagger
+ * /updatePaymentDruo:
+ *   post:
+ *     tags:
+ *       - salesforce
+ *     summary: Update payment status for Druo account.
+ *     description: This endpoint updates the payment status and details for a Druo account in Salesforce, including the reference, status, amount, and code.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   primary_reference:
+ *                     type: string
+ *                     example: "123456789"
+ *                   status:
+ *                     type: string
+ *                     example: "paid"
+ *                   amount:
+ *                     type: number
+ *                     format: float
+ *                     example: 150.75
+ *                   code:
+ *                     type: string
+ *                     example: "ABCD1234"
+ *     responses:
+ *       200:
+ *         description: Successfully updated the payment status in Salesforce.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Payment status updated successfully."
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.post("/updatePaymentDruo", getToken, (req, res) => {
   const { data } = req.body;
 
@@ -931,7 +2077,62 @@ app.post("/updatePaymentDruo", getToken, (req, res) => {
   }
 });
 
-// obtener reseñas google 
+/**
+ * @swagger
+ * /getCavcaReview:
+ *   get:
+ *     summary: Get reviews and details of a place from Google Maps.
+ *     tags:
+ *       - general
+ *     description: This endpoint retrieves detailed information, including reviews and ratings, of a place using Google Maps API.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the place details and reviews.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   example: "Cavca"
+ *                 rating:
+ *                   type: number
+ *                   format: float
+ *                   example: 4.5
+ *                 reviews:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       author_name:
+ *                         type: string
+ *                         example: "John Doe"
+ *                       rating:
+ *                         type: number
+ *                         format: float
+ *                         example: 5
+ *                       text:
+ *                         type: string
+ *                         example: "Great service and friendly staff!"
+ *                       time:
+ *                         type: string
+ *                         example: "2025-01-20T12:34:56Z"
+ *                 user_ratings_total:
+ *                   type: integer
+ *                   example: 120
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Ha ocurrido un problema con el servidor: <error-message>"
+ */
+
 app.get("/getCavcaReview", (req, res) => {
   try {
     axios({
@@ -952,6 +2153,53 @@ app.get("/getCavcaReview", (req, res) => {
     });
   }
 });
+
+/**
+ /**
+ * @swagger
+ * /getTemplate:
+ *   get:
+ *     tags:
+ *       - docusign
+ *     summary: Get DocuSign templates
+ *     description: This endpoint retrieves the list of templates available in the DocuSign account.
+ *     security:
+ *       - ApiTokenAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of DocuSign templates.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 templates:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       templateId:
+ *                         type: string
+ *                         example: "12ab34cd-56ef-78gh-90ij-klmnopqrstuv"
+ *                       name:
+ *                         type: string
+ *                         example: "Insurance Agreement Template"
+ *                       description:
+ *                         type: string
+ *                         example: "A template for signing insurance agreements."
+ *       500:
+ *         description: Server error or unexpected issues.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error with the server: <error-message>"
+ */
+
+
 
 app.get("/getTemplate", verifyToken, async (req, res) => {
   try {
@@ -985,6 +2233,136 @@ app.get("/getTemplate", verifyToken, async (req, res) => {
     throw new Error(error);
   }
 });
+
+/**
+ * @swagger
+ * /sendEnvelope:
+ *   post:
+ *     summary: Sends a DocuSign envelope for signature
+ *     tags: 
+ *       - docusign 
+ *     description: This endpoint sends an envelope to specified recipients using a template in DocuSign. 
+  *     security:
+ *       - ApiTokenAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               template_id:
+ *                 type: string
+ *                 description: The ID of the DocuSign template to use.
+ *                 example: e4496ccc-820a-474a-990e-55051d909744
+ *               comprador_uno:
+ *                 type: object
+ *                 description: Information about the first buyer.
+ *                 properties:
+ *                   nombre:
+ *                     type: string
+ *                     description: Name of the first buyer.
+ *                   correoElectronico:
+ *                     type: string
+ *                     description: Email address of the first buyer.
+ *                 required:
+ *                   - nombre
+ *                   - correoElectronico
+ *               comprador_dos:
+ *                 type: object
+ *                 description: Information about the second buyer.
+ *                 properties:
+ *                   nombre:
+ *                     type: string
+ *                     description: Name of the second buyer.
+ *                   correoElectronico:
+ *                     type: string
+ *                     description: Email address of the second buyer.
+ *                 required:
+ *                   - nombre
+ *                   - correoElectronico
+ *               data:
+ *                 type: object
+ *                 description: Detailed data about the property and transaction.
+ *                 properties:
+ *                   nombre_proyecto:
+ *                     type: string
+ *                     description: Name of the project.
+ *                   fidecomiso:
+ *                     type: string
+ *                     description: Fiduciary entity.
+ *                   fecha_escrituracion:
+ *                     type: string
+ *                     format: date
+ *                     description: Deed date.
+ *                   comprador_nombre:
+ *                     type: string
+ *                     description: Name of the buyer.
+ *                   comprador_identificacion:
+ *                     type: string
+ *                     description: Identification number of the buyer.
+ *                   comprador_expedicion:
+ *                     type: string
+ *                     description: Place of issuance of the buyer's ID.
+ *                   comprador_estado_civil:
+ *                     type: string
+ *                     description: Marital status of the buyer.
+ *                   comprador_direccion:
+ *                     type: string
+ *                     description: Address of the buyer.
+ *                   comprador_telefono:
+ *                     type: string
+ *                     description: Phone number of the buyer.
+ *                   comprador_email:
+ *                     type: string
+ *                     format: email
+ *                     description: Email address of the buyer.
+ *                   agrupacion:
+ *                     type: string
+ *                     description: Associated grouping information.
+ *                   area_privada:
+ *                     type: string
+ *                     description: Private area of the property.
+ *                   valor_inmueble_letras:
+ *                     type: string
+ *                     description: Property value in words.
+ *                   valor_inmueble_numero:
+ *                     type: string
+ *                     description: Property value in numbers.
+ *                   # Include other fields as necessary
+ *     responses:
+ *       200:
+ *         description: Envelope successfully sent.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *       400:
+ *         description: Invalid input.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Server error message.
+ */
+
 
 app.post("/sendEnvelope", verifyToken, async (req, res) => {
   const { template_id, data, comprador_uno, comprador_dos } = req.body;
@@ -1683,122 +3061,7 @@ app.post("/sendEnvelope", verifyToken, async (req, res) => {
         ],
       });
 
-      // signer2.tabs = docusign.Tabs.constructFromObject({
-      //   textTabs: [
-      //     nombre_proyecto_1,
-      //     fidecomiso_1,
-      //     fecha_escrituracion,
-      //     comprador_nombre_1,
-      //     comprador_identificacion_1,
-      //     comprador_expedicion_1,
-      //     comprador_estado_civil_1,
-      //     comprador_direccion_1,
-      //     comprador_telefono_1,
-      //     comprador_email_1,
-      //     comprador_nombre_2,
-      //     comprador_identificacion_2,
-      //     comprador_expedicion_2,
-      //     comprador_estado_civil_2,
-      //     comprador_direccion_2,
-      //     comprador_telefono_2,
-      //     comprador_email_2,
-      //     agrupacion,
-      //     area_privada,
-      //     valor_inmueble_letras_1,
-      //     valor_inmueble_numero,
-      //     valor_smlv_letras,
-      //     valor_smlv_numero,
-      //     fiducia,
-      //     nombre_proyecto_2,
-      //     apartamento,
-      //     torre,
-      //     area_construida_2,
-      //     area_privada_2,
-      //     nombre_proyecto_3,
-      //     nombre_proyecto_4,
-      //     nombre_proyecto_5,
-      //     nombre_proyecto_6,
-      //     nombre_proyecto_7,
-      //     smlv_valor,
-      //     valor_inmueble_letras_2,
-      //     valor_inmueble_numero_2,
-      //     fidecomiso_2,
-      //     fidecomiso_3,
-      //     smlv_escritura,
-      //     entidad_1,
-      //     valor_entidad_1,
-      //     valor_entidad_letras_1,
-      //     entidad_2,
-      //     valor_entidad_2,
-      //     valor_entidad_letras_2,
-      //     entidad_3,
-      //     valor_entidad_3,
-      //     valor_entidad_letras_3,
-      //     fidecomiso_4,
-      //     fidecomiso_5,
-      //     fidecomiso_6,
-      //     fidecomiso_7,
-      //     fidecomiso_8,
-      //     fidecomiso_9,
-      //     fidecomiso_10,
-      //     nombre_proyecto_8,
-      //     nombre_proyecto_20,
-      //     fidecomiso_11,
-      //     clausula_11,
-      //     nombre_proyecto_9,
-      //     nombre_proyecto_10,
-      //     nombre_proyecto_11,
-      //     nombre_proyecto_12,
-      //     nombre_proyecto_13,
-      //     nombre_proyecto_14,
-      //     fidecomiso_12,
-      //     nombre_proyecto_15,
-      //     conyuge_nombre,
-      //     conyuge_documento,
-      //     nombre_proyecto_16,
-      //     agrupacion_2,
-      //     comprador_nombre_3,
-      //     comprador_identificacion_3,
-      //     tipo_venta,
-      //     valor_venta,
-      //     subtotal,
-      //     cancelado_a_fecha,
-      //     fecha_separacion,
-      //     valor_separacion,
-      //     fecha_cuota,
-      //     valor_cuota,
-      //     fecha_cesantias,
-      //     valor_cesantias,
-      //     fecha_ahorro_programado,
-      //     valor_ahorro_programado,
-      //     fecha_pensiones_obligatorias,
-      //     valor_pensiones_obligatorias,
-      //     fecha_cuenta_afc,
-      //     valor_cuenta_afc,
-      //     fecha_abono_cuota_inicial,
-      //     valor_bono_cuota_inicial,
-      //     fecha_subsidio,
-      //     valor_subsidio,
-      //     fecha_subsidio_concurrente,
-      //     valor_subsidio_concurrente,
-      //     fecha_subsidio_habitat,
-      //     valor_subsidio_habitat,
-      //     fecha_credito,
-      //     valor_credito,
-      //     valor_total,
-      //     nombre_proyecto_17,
-      //     agrupacion_3,
-      //     comprador_nombre_4,
-      //     comprador_identificacion_4,
-      //     tipo_inmueble,
-      //     nombre_proyecto_18,
-      //     nombre_proyecto_19,
-      //     area_construida_total,
-      //   ],
-      // });
-
-      // Crear el sobre utilizando la plantilla
-      const envelopeDefinition = new docusign.EnvelopeDefinition();
+    const envelopeDefinition = new docusign.EnvelopeDefinition();
       envelopeDefinition.templateId = template_id;
       envelopeDefinition.templateRoles = [signer1];
       envelopeDefinition.status = "sent";
@@ -1822,6 +3085,167 @@ app.post("/sendEnvelope", verifyToken, async (req, res) => {
     throw new Error(error);
   }
 });
+
+/**
+ * @swagger
+ * /createCredit:
+ *  tags:
+ *   post:
+ *     summary: Creates a credit request in Salesforce
+ *     tags: 
+ *       - Salesforce
+ *     description: Endpoint to create a credit request and send it to Salesforce.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   tipo_cuenta:
+ *                     type: string
+ *                     description: Account type (e.g., personal or business).
+ *                   cuenta:
+ *                     type: object
+ *                     description: Personal account information.
+ *                     properties:
+ *                       nombre:
+ *                         type: string
+ *                         description: Account holder's first name.
+ *                       segundo_nombre:
+ *                         type: string
+ *                         description: Account holder's middle name.
+ *                       apellidos:
+ *                         type: string
+ *                         description: Account holder's last name.
+ *                       genero:
+ *                         type: string
+ *                         description: Account holder's gender (e.g., Male or Female).
+ *                       tipo_documento:
+ *                         type: string
+ *                         description: Type of identification document.
+ *                       celular:
+ *                         type: string
+ *                         description: Account holder's mobile number.
+ *                       numero_documento:
+ *                         type: string
+ *                         description: Identification document number.
+ *                       fecha_nacimiento:
+ *                         type: string
+ *                         format: date
+ *                         description: Account holder's date of birth.
+ *                       fecha_expedicion:
+ *                         type: string
+ *                         format: date
+ *                         description: Document issue date.
+ *                       correo_electronico:
+ *                         type: string
+ *                         format: email
+ *                         description: Account holder's email address.
+ *                       ocupacion:
+ *                         type: string
+ *                         description: Account holder's occupation.
+ *                       ingresos_mensuales:
+ *                         type: number
+ *                         format: float
+ *                         description: Monthly income of the account holder.
+ *                       ciudad_nacimiento:
+ *                         type: string
+ *                         description: City of birth.
+ *                   juridicos:
+ *                     type: object
+ *                     description: Business account information.
+ *                     properties:
+ *                       nombre_corto:
+ *                         type: string
+ *                         description: Short name of the business entity.
+ *                       no_documento_rep_legal:
+ *                         type: string
+ *                         description: Legal representative's identification number.
+ *                       nit:
+ *                         type: string
+ *                         description: Tax identification number.
+ *                       tipo_persona_juridica:
+ *                         type: string
+ *                         description: Type of legal entity.
+ *                       total_activos:
+ *                         type: number
+ *                         format: float
+ *                         description: Total assets of the entity.
+ *                       total_pasivos:
+ *                         type: number
+ *                         format: float
+ *                         description: Total liabilities of the entity.
+ *                   credito:
+ *                     type: object
+ *                     description: Credit details.
+ *                     properties:
+ *                       id_tipo_credito:
+ *                         type: string
+ *                         description: Credit type identifier.
+ *                       tipo_asegurado:
+ *                         type: string
+ *                         description: Insured type.
+ *                       persona_juridica:
+ *                         type: boolean
+ *                         description: Indicates if it applies to a legal entity.
+ *                       plazo_meses:
+ *                         type: number
+ *                         description: Credit term in months.
+ *                       prima_total:
+ *                         type: number
+ *                         format: float
+ *                         description: Total premium for the credit.
+ *                       abono_inicial:
+ *                         type: number
+ *                         format: float
+ *                         description: Initial deposit for the credit.
+ *                       linea:
+ *                         type: string
+ *                         description: Credit line.
+ *                       aplica_retefuente:
+ *                         type: boolean
+ *                         description: Indicates if withholding tax applies.
+ *                       no_aplica_retefuente:
+ *                         type: boolean
+ *                         description: Indicates if withholding tax does not apply.
+ *                       placa_vehiculo:
+ *                         type: string
+ *                         description: Vehicle license plate.
+ *                       no_poliza:
+ *                         type: string
+ *                         description: Policy number.
+ *                       anexo:
+ *                         type: string
+ *                         description: Additional information about the credit.
+ *                       sucursal:
+ *                         type: string
+ *                         description: Branch associated with the credit.
+ *                       tipo_amortizacion:
+ *                         type: string
+ *                         description: Credit amortization type.
+ *     responses:
+ *       200:
+ *         description: Request processed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Salesforce service response.
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
+ */
 
 app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   const { data } = req.body;
@@ -1910,6 +3334,108 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /updateOppCavca:
+ *   post:
+ *     summary: Updates opportunity data in Salesforce
+ *     tags: 
+ *       - salesforce
+ *     description: Endpoint to update opportunity data in Salesforce for the CAVCA system.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   cedula:
+ *                     type: string
+ *                     description: User's identification document number.
+ *                   placa:
+ *                     type: string
+ *                     description: Vehicle license plate.
+ *                   IdCotizacion:
+ *                     type: string
+ *                     description: Quotation ID.
+ *                   ListaDatos:
+ *                     type: array
+ *                     description: List of insurance-related data.
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         Bolivar_Premium:
+ *                           type: number
+ *                           format: float
+ *                           description: Premium for Bolivar insurance.
+ *                         HDI_Livianos_Full:
+ *                           type: number
+ *                           format: float
+ *                           description: Full coverage for HDI lightweight vehicles.
+ *                         Bolivar_Estandar:
+ *                           type: number
+ *                           format: float
+ *                           description: Standard coverage for Bolivar insurance.
+ *                         AXAPlusAsis_Plus:
+ *                           type: number
+ *                           format: float
+ *                           description: Plus coverage for AXA assistance.
+ *                         Bolivar_Clasico:
+ *                           type: number
+ *                           format: float
+ *                           description: Classic coverage for Bolivar insurance.
+ *                         Mapfre_TrebolBasico:
+ *                           type: number
+ *                           format: float
+ *                           description: Basic Trebol plan from Mapfre.
+ *                         Liberty_Silver1_VehiculoSustituto:
+ *                           type: number
+ *                           format: float
+ *                           description: Liberty Silver 1 with substitute vehicle option.
+ *                         Zurich_Basico:
+ *                           type: number
+ *                           format: float
+ *                           description: Basic coverage for Zurich insurance.
+ *                         Solidaria_Premium:
+ *                           type: number
+ *                           format: float
+ *                           description: Premium plan for Solidaria insurance.
+ *                         Previsora_Full:
+ *                           type: number
+ *                           format: float
+ *                           description: Full coverage for Previsora insurance.
+ *                         Seg_Estado_Inv_Cavca:
+ *                           type: number
+ *                           format: float
+ *                           description: State investment coverage for CAVCA.
+ *                         AXA_Vip_asis_esencial:
+ *                           type: number
+ *                           format: float
+ *                           description: VIP essential assistance from AXA.
+ *                         # Add other fields as needed
+ *     responses:
+ *       200:
+ *         description: Request processed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Salesforce service response.
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
+ */
+
 app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   const { data } = req.body;
 
@@ -1970,13 +3496,14 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
         res.json(data);
       })
       .catch((err) => {
+        console.log(err);
         res.status(500).json({
-          error: `Ha ocurrido un problema con el servidor: ${err}`,
+          error: `Ha ocurrido un problema con el servidor a: ${err}`,
         });
       });
   } catch (error) {
     res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${error}`,
+      error: `Ha ocurrido un problema con el servidor b: ${error}`,
     });
   }
 });

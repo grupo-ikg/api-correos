@@ -292,9 +292,7 @@ app.use(express.urlencoded({ limit: "50mb" }));
 
 app.use(cors());
 
-app.use((req, res) => {
-  res.status(404).send("Página no encontrada");
-});
+
 
 /**
  * @swagger
@@ -3510,6 +3508,10 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
       error: `Ha ocurrido un problema con el servidor b: ${error}`,
     });
   }
+});
+
+app.get("*", function (req, res, next) {
+  res.status(404).send("Página no encontrada");
 });
 
 app.listen(PORT, () => {

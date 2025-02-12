@@ -105,7 +105,7 @@ function getTokenDev(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://crediseguro--pruebamc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9WCdh6PFin0jN5Df21kRJKitsev2I72yjCeJIXS_5feLY5bSdIu9QYh1YGFa2_0GRD12xqGKi4S417M_n&client_secret=D851257982E517A9E351DCCA88AE58A73C8EED287923C1F43E8DDB2EE52B687D&username=jescobar@crediseguro.co.pruebamc&password=SalesCredi2024&grant_type=password",
+      url: "https://test.salesforce.com/services/oauth2/token?client_id=3MVG9M00uNbhCYzD952QPLa4Bitdt6XfZn9M1Cg6udqLGolSfcKVDWUblemq8_jyQ15UaYl6pmArXjEeEUf_6&client_secret=DB2E5F3F5574CAFB829064EFE7566DF91052D31130B3E59399763E4E5F2E85C8&username=jescobar@crediseguro.co.desarrollo&password=SalesCredi202601&grant_type=password",
     })
       .then(({ data }) => {
         req.token = data.access_token;
@@ -3509,6 +3509,62 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
     });
   }
 });
+
+app.post("/bridge_connection_crediseguro",getTokenDev, verifyToken, (req, res) => {
+
+  // Lógica según el evento recibido
+  if (req.body.event) {
+      axios({
+        method: "POST",
+        url:"https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/" +
+          req.body.event,
+        data: JSON.stringify(req.body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${req.token}`,
+        },
+      })
+        .then(({ data }) => {
+          res.json(data);
+        })
+        .catch((err) => {
+          res.status(500).json({
+            error: `Ha ocurrido un problema con el servidor: ${err}`,
+          });
+        });
+  }
+
+  res.status(200).json({ message: "Webhook recibido correctamente" });
+});
+
+app.post("/bridge_connection_cavca", getTokenDevCavca ,verifyToken, (req, res) => {
+
+    // Lógica según el evento recibido
+    if (req.body.event) {
+      axios({
+        method: "POST",
+        url:
+          "https://cavca--cotizador.sandbox.my.salesforce.com/services/apexrest/V1/" +
+          req.body.event,
+        data: JSON.stringify(req.body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${req.token}`,
+        },
+      })
+        .then(({ data }) => {
+          res.json(data);
+        })
+        .catch((err) => {
+          res.status(500).json({
+            error: `Ha ocurrido un problema con el servidor: ${err}`,
+          });
+        });
+    }
+
+    res.status(200).json({ message: "Webhook recibido correctamente" });
+  }
+);
 
 app.get("*", function (req, res, next) {
   res.status(404).send("Página no encontrada");

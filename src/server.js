@@ -156,18 +156,23 @@ function validateToken(token) {
 function verifyToken(req, res, next) {
     const token = req.headers['authorization']; // El token debe enviarse en la cabecera 'Authorization'
 
-    if (!token) {
-        return res.status(403).send({ auth: false, message: 'No token provided.' });
+    if (!token || token.trim() === "") {
+      console.log("No token provided. Request stopped.");
+      return res
+        .status(403)
+        .send({ auth: false, message: "No token provided." });
     }
 
     const validation = validateToken(token);
 
     if (!validation.valid) {
         return res.status(401).send({ auth: false, message: 'Failed to authenticate token.' });
+    }else{
+      req.client = validation.decoded; // Guarda los datos decodificados en req.client
+      next(); // Continúa con la siguiente función o ruta
     }
 
-    req.client = validation.decoded; // Guarda los datos decodificados en req.client
-    next(); // Continúa con la siguiente función o ruta
+
 }
 
 async function createToken (userIdSender) {
@@ -2201,8 +2206,6 @@ app.get("/getCavcaReview", (req, res) => {
  *                   example: "Error with the server: <error-message>"
  */
 
-
-
 app.get("/getTemplate", verifyToken, async (req, res) => {
   try {
     const tokenDocusign = await createToken("4095dee1-7ed5-4dd9-be1d-c59ce524f7df");
@@ -2364,7 +2367,6 @@ app.get("/getTemplate", verifyToken, async (req, res) => {
  *                   type: string
  *                   description: Server error message.
  */
-
 
 app.post("/sendEnvelope", verifyToken, async (req, res) => {
   const { template_id, data, comprador_uno, comprador_dos } = req.body;
@@ -3510,7 +3512,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   }
 });
 
-app.post("/bridge_connection_crediseguro",getTokenDev, verifyToken, (req, res) => {
+app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
 
   // Lógica según el evento recibido
   if (req.body.event) {
@@ -3537,7 +3539,7 @@ app.post("/bridge_connection_crediseguro",getTokenDev, verifyToken, (req, res) =
   res.status(200).json({ message: "Webhook recibido correctamente" });
 });
 
-app.post("/bridge_connection_cavca", getTokenDevCavca ,verifyToken, (req, res) => {
+app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
 
     // Lógica según el evento recibido
     if (req.body.event) {

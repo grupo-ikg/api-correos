@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const express = require("express");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
@@ -19,6 +20,7 @@ const secretKey = process.env.SECRET_JWT;
 const swStats = require("swagger-stats");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const treble = require("./portal_intermediario.js");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -26,8 +28,8 @@ const upload = multer({ storage: storage });
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "desarrolladorweb@cavca.com.co", // Cambia esto con tu dirección de correo electrónico de Gmail
-    pass: "Wil3224601736@", // Cambia esto con tu contraseña de correo electrónico de Gmail
+    user: "soporteenvios@crediseguro.co", // Cambia esto con tu dirección de correo electrónico de Gmail
+    pass: "Colombia2024*", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
 
@@ -536,7 +538,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
 
   if (req.body.type && req.body.type === "doc") {
     mailOptions = {
-      from: "desarrolladorweb@cavca.com.co",
+      from: "soporteenvios@crediseguro.co",
       to: req.body.sender.split(","),
       subject: `${req.body.subject}`,
       text: req.body.text,
@@ -548,7 +550,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
     };
   } else {
     mailOptions = {
-      from: "desarrolladorweb@cavca.com.co",
+      from: "soporteenvios@crediseguro.co",
       to: req.body.sender,
       subject: `${req.body.subject} ${req.body.document}`,
       text: req.body.message,
@@ -3568,6 +3570,36 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
   }
 );
 
+app.post("/treble", (req, res) => {
+  console.log(req.query);
+  console.log(req.body);
+
+  switch (req.query.event) {
+    case "autentication":
+      res.status(200).json(treble.autentication(req.body));
+      break;
+    case "dataFormBasic":
+      res.status(200).json(treble.validate(req.body));
+      break;
+    case "uploadDocument":
+      console.log(treble.uploadDocument(req.body));
+      res.status(200).json(treble.uploadDocument(req.body));
+      break;
+    case "uploadPolicy":
+      console.log(treble.uploadPolicy(req.body));
+      res.status(200).json(treble.uploadPolicy(req.body));
+      break;
+    case "uploadExhibit":
+      console.log(treble.uploadExhibit(req.body));
+      res.status(200).json(treble.uploadExhibit(req.body));
+      break;
+    default:
+      res.status(400).json({ error: "Evento no reconocido" });
+      return;
+  }
+
+});
+
 app.get("*", function (req, res, next) {
   res.status(404).send("Página no encontrada");
 });
@@ -3575,3 +3607,6 @@ app.get("*", function (req, res, next) {
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto que es ${PORT}`);
 });
+
+//https://1595-161-10-244-188.ngrok-free.app/treble?event=validateDocument
+//https://1595-161-10-244-188.ngrok-free.app/treble?event=uploadDocument

@@ -28,8 +28,8 @@ const upload = multer({ storage: storage });
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "soporteenvios@crediseguro.co", // Cambia esto con tu dirección de correo electrónico de Gmail
-    pass: "Colombia2024*", // Cambia esto con tu contraseña de correo electrónico de Gmail
+    user: "desarrolladorweb@cavca.com.co", // Cambia esto con tu dirección de correo electrónico de Gmail
+    pass: "Wil3224601736@@", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
 
@@ -538,7 +538,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
 
   if (req.body.type && req.body.type === "doc") {
     mailOptions = {
-      from: "soporteenvios@crediseguro.co",
+      from: "desarrolladorweb@cavca.com.co",
       to: req.body.sender.split(","),
       subject: `${req.body.subject}`,
       text: req.body.text,
@@ -550,7 +550,7 @@ app.post("/sendDocs", upload.any(), (req, res) => {
     };
   } else {
     mailOptions = {
-      from: "soporteenvios@crediseguro.co",
+      from: "desarrolladorweb@cavca.com.co",
       to: req.body.sender,
       subject: `${req.body.subject} ${req.body.document}`,
       text: req.body.message,

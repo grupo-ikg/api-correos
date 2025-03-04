@@ -441,6 +441,16 @@ class Treble {
         contentType: "application/pdf",
       });
 
+      // Realizar la solicitud POST
+      axios
+        .post("https://crediseguro-back.click/sendDocs", formMail)
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
       // Crear el form-data y agregar el archivo y demás campos
       const form = new FormData();
       form.append("file", response.data, {
@@ -451,8 +461,6 @@ class Treble {
       form.append("id", id_peticion_crediseguro.value);
       form.append("insurance", insurance);
       form.append("id_intermediario", id_intermediario_crediseguro.value);
-
-      console.log(form);
 
       // Configurar la URL de envío y las cabeceras necesarias
       const sendFileUrl =
@@ -540,7 +548,7 @@ class Treble {
         payload,
         {
           headers: {
-            "authorization": "Bearer" + token_crediseguro.value,
+            "authorization": "Bearer " + token_crediseguro.value,
             "content-type": "application/json",
           },
         }
@@ -559,6 +567,41 @@ class Treble {
     }
 
     return "procesando";
+  };
+
+  getData = async (data) => {
+    const session_id = data.session_id;
+    const token_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "token_crediseguro"
+    );
+    const id_peticion_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "id_peticion_crediseguro"
+    );
+
+    const result = await axios.get(
+      "http://localhost:3001/api/credit-ocr?id=" +
+        id_peticion_crediseguro.value,
+      {
+        headers: {
+          authorization: "Bearer " + token_crediseguro.value,
+          "content-type": "application/json",
+        },
+      }
+    );
+
+    const user_session_keys = Object.keys(result.data).map((prop) => ({
+      key: `${prop}_ocr`,
+      value: result.data[prop] !== null ? result.data[prop].toString() : "",
+    }));
+
+    this.update(session_id, {user_session_keys: user_session_keys});
+
+    return "procesando";
+  };
+
+  updateData = async (session_id, data) => {
+    const result = await this.client.updateSession(session_id, data);
+    console.log(result);
   };
 }
 

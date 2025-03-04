@@ -239,7 +239,7 @@ function getTokenDevCavca(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://cavca--cotizador.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9xfrbKQ6hBytnC5pEE29nNkmzKUISBHM533rGfM..GayQeCLp4fguxblmS9.3_BpGN00MCoJMEMenNtpf&client_secret=E0C255B2B27D89D7E8D0B7D99F3F61276BFAD0697FCF9B8B914F450734F7647E&username=desarrolladorsc1@cavca.com.co.cotizador&password=Tecnologia2023/&grant_type=password",
+      url: "https://cavca--preproducc.sandbox.my.salesforce.com/services/oauth2/token?client_id=3MVG9snQZy6aQDh1bhQninXsB8Ni29MY3WL13Q7PLudHWJlWZ7C.HC.x3vpgTeRtni3cn_51NfH5B7uPVN9Kg&client_secret=AFCD7D8AD775E88A57A4CAC1B459D71DFA337644131C6476D69110EDDACBFF07&username=desarrolladorsc1@cavca.com.co.preproducc&password=Tecnologia2025&grant_type=password",
     })
       .then(({ data }) => {
         req.token = data.access_token;
@@ -3548,7 +3548,7 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
       axios({
         method: "POST",
         url:
-          "https://cavca--cotizador.sandbox.my.salesforce.com/services/apexrest/V1/" +
+          "https://cavca--preproducc.sandbox.my.salesforce.com/services/apexrest/V1/" +
           req.body.event,
         data: JSON.stringify(req.body),
         headers: {
@@ -3593,6 +3593,12 @@ app.post("/treble", (req, res) => {
       console.log(treble.uploadExhibit(req.body));
       res.status(200).json(treble.uploadExhibit(req.body));
       break;
+    case "getData":
+      res.status(200).json(treble.getData(req.body));
+      break;
+    case "updateData":
+      res.status(200).json(treble.updateData(req.body));
+      break;
     default:
       res.status(400).json({ error: "Evento no reconocido" });
       return;
@@ -3607,6 +3613,3 @@ app.get("*", function (req, res, next) {
 app.listen(PORT, () => {
   console.log(`Servidor al parecer en ejecución en el puerto que es ${PORT}`);
 });
-
-//https://1595-161-10-244-188.ngrok-free.app/treble?event=validateDocument
-//https://1595-161-10-244-188.ngrok-free.app/treble?event=uploadDocument

@@ -21,15 +21,17 @@ const swStats = require("swagger-stats");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const treble = require("./portal_intermediario.js");
+const trebleClient = require("./portal_cliente.js");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "desarrolladorweb@cavca.com.co", // Cambia esto con tu dirección de correo electrónico de Gmail
-    pass: "Wil3224601736@@", // Cambia esto con tu contraseña de correo electrónico de Gmail
+    pass: "xnta wfqc llwq wtaq", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
 
@@ -3571,7 +3573,7 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
 );
 
 app.post("/treble", (req, res) => {
-  console.log(req.query);
+  console.log(req.query.event);
   console.log(req.body);
 
   switch (req.query.event) {
@@ -3582,15 +3584,12 @@ app.post("/treble", (req, res) => {
       res.status(200).json(treble.validate(req.body));
       break;
     case "uploadDocument":
-      console.log(treble.uploadDocument(req.body));
       res.status(200).json(treble.uploadDocument(req.body));
       break;
     case "uploadPolicy":
-      console.log(treble.uploadPolicy(req.body));
       res.status(200).json(treble.uploadPolicy(req.body));
       break;
     case "uploadExhibit":
-      console.log(treble.uploadExhibit(req.body));
       res.status(200).json(treble.uploadExhibit(req.body));
       break;
     case "getData":
@@ -3599,11 +3598,48 @@ app.post("/treble", (req, res) => {
     case "updateData":
       res.status(200).json(treble.updateData(req.body));
       break;
+    case "getCertificate":
+      res.status(200).json(treble.getCertificate(req.body));
+      break;
+    case "downloadCertificate":
+      res.status(200).json(treble.downloadCertificate(req.body));
+      break;
     default:
       res.status(400).json({ error: "Evento no reconocido" });
       return;
   }
 
+});
+
+app.post("/treble_client", getTokenDev, (req, res) => {
+  console.log(req.query.event);
+  console.log(req.body);
+
+  switch (req.query.event) {
+    case "validate":
+      res.status(200).json(trebleClient.validate(req.token, req.body));
+      break;
+    case "credit":
+      res.status(200).json(trebleClient.credit(req.token, req.body));
+      break;
+    case "certificate":
+      res
+        .status(200)
+        .json(trebleClient.certificate(req.token, req.body, req.query.type));
+      break;
+    case "video_tutorial":
+      res.status(200).json(trebleClient.video_tutorial(req.body));
+      break;
+    case "createCase":
+      res.status(200).json(trebleClient.createCase(req.token, req.body));
+      break;
+    case "createPac":
+      res.status(200).json(trebleClient.createPac(req.token, req.body));
+      break;
+    default:
+      res.status(400).json({ error: "Evento no reconocido" });
+      return;
+  }
 });
 
 app.get("*", function (req, res, next) {

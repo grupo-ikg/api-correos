@@ -39,6 +39,7 @@ class Treble {
       data: JSON.stringify({
         document: nitInicio.value,
         password: Buffer.from(claveInicio.value).toString("base64"),
+        type: 0
       }),
     })
       .then(({ data }) => {
@@ -310,8 +311,37 @@ class Treble {
     const archivo_poliza = data.user_session_keys.find(
       (item) => item.key === "archivo_poliza"
     );
+    const mundial_formato_1 = data.user_session_keys.find(
+      (item) => item.key === "mundial_formato_1"
+    );
+    const mundial_formato_2 = data.user_session_keys.find(
+      (item) => item.key === "mundial_formato_2"
+    );
+    const equidad_formato_1 = data.user_session_keys.find(
+      (item) => item.key === "equidad_formato_1"
+    );
+    const equidad_formato_2 = data.user_session_keys.find(
+      (item) => item.key === "equidad_formato_2"
+    );
+    const solidaria_formato_1 = data.user_session_keys.find(
+      (item) => item.key === "solidaria_formato_1"
+    );
+    const solidaria_formato_2 = data.user_session_keys.find(
+      (item) => item.key === "solidaria_formato_2"
+    );
+    const solidaria_formato_3 = data.user_session_keys.find(
+      (item) => item.key === "solidaria_formato_3"
+    );
+    const solidaria_formato_4 = data.user_session_keys.find(
+      (item) => item.key === "solidaria_formato_4"
+    );
+    const sura_formato_1 = data.user_session_keys.find(
+      (item) => item.key === "sura_formato_1"
+    );
+    const sura_formato_2 = data.user_session_keys.find(
+      (item) => item.key === "sura_formato_2"
+    );
 
-    console.log(archivo_poliza);
 
     if (!archivo_poliza) {
       console.error("No se encontró 'archivo_poliza' en user_session_keys.");
@@ -346,9 +376,12 @@ class Treble {
         type_doc = "other";
       } else if (aseguradora.value == "Compañía Seguros Mundial S.A.") {
         insurance = "MUNDIAL-0013h00000GiwbWAAR";
-        if (mundial_formato_1 == "Si") {
+        if (mundial_formato_1.value == "Si") {
           type_doc = "formato_1";
-        } else if (mundial_formato_1 == "No" && mundial_formato_2 == "Si") {
+        } else if (
+          mundial_formato_1.value == "No" &&
+          mundial_formato_2.value == "Si"
+        ) {
           type_doc = "formato_2";
         }
       } else if (aseguradora.value == "Seguros Bolivar S.A.") {
@@ -356,9 +389,12 @@ class Treble {
         type_doc = "other";
       } else if (aseguradora.value == "La Equidad Seguros Generales S.A.") {
         insurance = "EQUIDAD-0013h00000DgV5TAAV";
-        if (equidad_formato_1 == "Si") {
+        if (equidad_formato_1.value == "Si") {
           type_doc = "formato_1";
-        } else if (equidad_formato_1 == "No" && equidad_formato_2 == "Si") {
+        } else if (
+          equidad_formato_1.value == "No" &&
+          equidad_formato_2.value == "Si"
+        ) {
           type_doc = "formato_2";
         }
       } else if (aseguradora.value == "SBS Seguros Colombia S.A.") {
@@ -366,21 +402,24 @@ class Treble {
         type_doc = "SBS-0013h00000GiwbcAAB";
       } else if (aseguradora.value == "Aseguradora Solidaria de Colombia") {
         insurance = "SOLIDARIA-0013h00000GiwbTAAR";
-        if (equidad_formato_1 == "Si") {
+        if (solidaria_formato_1.value == "Si") {
           type_doc = "formato_1";
-        } else if (equidad_formato_1 == "No" && equidad_formato_2 == "Si") {
+        } else if (
+          solidaria_formato_1.value == "No" &&
+          solidaria_formato_2.value == "Si"
+        ) {
           type_doc = "formato_2";
         } else if (
-          equidad_formato_1 == "No" &&
-          equidad_formato_2 == "No" &&
-          equidad_formato_3 == "Si"
+          solidaria_formato_1.value == "No" &&
+          solidaria_formato_2.value == "No" &&
+          solidaria_formato_3.value == "Si"
         ) {
           type_doc = "formato_3";
         } else if (
-          equidad_formato_1 == "No" &&
-          equidad_formato_2 == "No" &&
-          equidad_formato_3 == "No" &&
-          equidad_formato_4 == "Si"
+          solidaria_formato_1.value == "No" &&
+          solidaria_formato_2.value == "No" &&
+          solidaria_formato_3.value == "No" &&
+          solidaria_formato_4.value == "Si"
         ) {
           type_doc = "formato_4";
         }
@@ -393,16 +432,17 @@ class Treble {
       } else if (aseguradora.value == "Allianz Colombia S.A.") {
         insurance = "ALLIANZ-0013h00000DgPwsAAF";
         type_doc = "other";
-      } else if (
-        aseguradora.value == "Mapfre Seguros Generales de Colombia S.A."
-      ) {
+      } else if (aseguradora.value == "Mapfre Seguros Generales de Colombia S.A.") {
         insurance = "MAPFRE-0013h00000GiwbaAAB";
         type_doc = "other";
       } else if (aseguradora.value == "Seguros Generales Suramericana S.A.") {
         insurance = "SURA-0013h00000GiwbfAAB";
-        if (sura_formato_1 == "Si") {
+        if (sura_formato_1.value == "Si") {
           type_doc = "formato_1";
-        } else if (sura_formato_1 == "No" && sura_formato_2 == "Si") {
+        } else if (
+          sura_formato_1.value == "No" &&
+          sura_formato_2.value == "Si"
+        ) {
           type_doc = "formato_2";
         }
       } else if (aseguradora.value == "Zurich Colombia Seguros S.A.") {
@@ -518,12 +558,10 @@ class Treble {
         ],
       });
     } else {
-
       const id_peticion_crediseguro = data.user_session_keys.find(
         (item) => item.key === "id_peticion_crediseguro"
       );
 
-      ;
       const fileName = path.basename(new URL(archivo_anexo.value).pathname);
 
       const fileResponse = await axios.get(archivo_anexo.value, {
@@ -548,7 +586,7 @@ class Treble {
         payload,
         {
           headers: {
-            "authorization": "Bearer " + token_crediseguro.value,
+            authorization: "Bearer " + token_crediseguro.value,
             "content-type": "application/json",
           },
         }
@@ -589,19 +627,452 @@ class Treble {
       }
     );
 
-    const user_session_keys = Object.keys(result.data).map((prop) => ({
-      key: `${prop}_ocr`,
-      value: result.data[prop] !== null ? result.data[prop].toString() : "",
-    }));
+    const Vig_inicial_ocr =
+      result.data.data.Vig_inicial === null ? "" : result.data.data.Vig_inicial;
+    const Vehiculo0kms_ocr =
+      result.data.data.Vehiculo0kms === null
+        ? ""
+        : result.data.data.Vehiculo0kms;
+    const TomadorReal_ocr =
+      result.data.data.TomadorReal === null ? "" : result.data.data.TomadorReal;
+    const tipoVehiculo_ocr =
+      result.data.data.tipoVehiculo === null
+        ? ""
+        : result.data.data.tipoVehiculo;
+    const Tipo_Documento_ocr =
+      result.data.data.Tipo_Documento === null
+        ? ""
+        : result.data.data.Tipo_Documento;
+    const Sexo_ocr =
+      result.data.data.Sexo === null ? "" : result.data.data.Sexo;
+    const Riesgo_ocr =
+      result.data.data.Riesgo === null ? "" : result.data.data.Riesgo;
+    const PrimaNetaHDI_ocr =
+      result.data.data.PrimaNetaHDI === null
+        ? ""
+        : result.data.data.PrimaNetaHDI;
+    const Prima_Total_ocr =
+      result.data.data.Prima_Total === null ? "" : result.data.data.Prima_Total;
+    const Placa_ocr =
+      result.data.data.Placa === null ? "" : result.data.data.Placa;
+    const oficina_ocr =
+      result.data.data.oficina === null ? "" : result.data.data.oficina;
+    const Ocupacion_Titular_Credito_ocr =
+      result.data.data.Ocupacion_Titular_Credito === null
+        ? ""
+        : result.data.data.Ocupacion_Titular_Credito;
+    const ObservacionesAnexo_ocr =
+      result.data.data.ObservacionesAnexo === null
+        ? ""
+        : result.data.data.ObservacionesAnexo;
+    const Obs_Portal_ocr =
+      result.data.data.Obs_Portal === null ? "" : result.data.data.Obs_Portal;
+    const NumeroDoc_ocr =
+      result.data.data.NumeroDoc === null ? "" : result.data.data.NumeroDoc;
+    const NovedadesOCR_ocr =
+      result.data.data.NovedadesOCR === null
+        ? ""
+        : result.data.data.NovedadesOCR;
+    const Nombres_ocr =
+      result.data.data.Nombres === null ? "" : result.data.data.Nombres;
+    const NoCertificado_ocr =
+      result.data.data.NoCertificado === null
+        ? ""
+        : result.data.data.NoCertificado;
+    const No_Poliza_ocr =
+      result.data.data.No_Poliza === null ? "" : result.data.data.No_Poliza;
+    const No_Cuotas_ocr =
+      result.data.data.No_Cuotas === null ? "" : result.data.data.No_Cuotas;
+    const Linea_ocr =
+      result.data.data.Linea === null ? "" : result.data.data.Linea;
+    const Ingresos_Titular_Del_Credito_ocr =
+      result.data.data.Ingresos_Titular_Del_Credito === null
+        ? ""
+        : result.data.data.Ingresos_Titular_Del_Credito;
+    const Ing_Intermediario_ocr =
+      result.data.data.Ing_Intermediario === null
+        ? ""
+        : result.data.data.Ing_Intermediario;
+    const Idsucursal_ocr =
+      result.data.data.Idsucursal === null ? "" : result.data.data.Idsucursal;
+    const IdSolicitante_ocr =
+      result.data.data.IdSolicitante === null
+        ? ""
+        : result.data.data.IdSolicitante;
+    const IdIntermediario_ocr =
+      result.data.data.IdIntermediario === null
+        ? ""
+        : result.data.data.IdIntermediario;
+    const Id_ocr = result.data.data.Id === null ? "" : result.data.data.Id;
+    const FechaNacimiento_ocr =
+      result.data.data.FechaNacimiento === null
+        ? ""
+        : result.data.data.FechaNacimiento;
+    const FechaExpedicion_ocr =
+      result.data.data.FechaExpedicion === null
+        ? ""
+        : result.data.data.FechaExpedicion;
+    const EstadoCivil_ocr =
+      result.data.data.EstadoCivil === null ? "" : result.data.data.EstadoCivil;
+    const Estado_ocr =
+      result.data.data.Estado === null ? "" : result.data.data.Estado;
+    const Es_Renovacion_ocr =
+      result.data.data.Es_Renovacion === null
+        ? ""
+        : result.data.data.Es_Renovacion;
+    const Documento_Poliza_ocr =
+      result.data.data.Documento_Poliza === null
+        ? ""
+        : result.data.data.Documento_Poliza;
+    const Doc_Tomador_ocr =
+      result.data.data.Doc_Tomador === null ? "" : result.data.data.Doc_Tomador;
+    const Doc_Asegurado_ocr =
+      result.data.data.Doc_Asegurado === null
+        ? ""
+        : result.data.data.Doc_Asegurado;
+    const DireccionDeResidencia_ocr =
+      result.data.data.DireccionDeResidencia === null
+        ? ""
+        : result.data.data.DireccionDeResidencia;
+    const DepartamentoDeNacimiento_ocr =
+      result.data.data.DepartamentoDeNacimiento === null
+        ? ""
+        : result.data.data.DepartamentoDeNacimiento;
+    const DepartamentoDeExpedicion_ocr =
+      result.data.data.DepartamentoDeExpedicion === null
+        ? ""
+        : result.data.data.DepartamentoDeExpedicion;
+    const Correo_Electronico_ocr =
+      result.data.data.Correo_Electronico === null
+        ? ""
+        : result.data.data.Correo_Electronico;
+    const CiudadDeResidencia_ocr =
+      result.data.data.CiudadDeResidencia === null
+        ? ""
+        : result.data.data.CiudadDeResidencia;
+    const CiudadDeNacimiento_ocr =
+      result.data.data.CiudadDeNacimiento === null
+        ? ""
+        : result.data.data.CiudadDeNacimiento;
+    const CiudadDeExpedicion_ocr =
+      result.data.data.CiudadDeExpedicion === null
+        ? ""
+        : result.data.data.CiudadDeExpedicion;
+    const Cel_Titular_Credito_ocr =
+      result.data.data.Cel_Titular_Credito === null
+        ? ""
+        : result.data.data.Cel_Titular_Credito;
+    const Asesor_Intermediario_ocr =
+      result.data.data.Asesor_Intermediario === null
+        ? ""
+        : result.data.data.Asesor_Intermediario;
+    const Aseguradora_ocr =
+      result.data.data.Aseguradora === null ? "" : result.data.data.Aseguradora;
+    const Apellidos_ocr =
+      result.data.data.Apellidos === null ? "" : result.data.data.Apellidos;
+    const Anexo_ocr =
+      result.data.data.Anexo === null ? "" : result.data.data.Anexo;
+    const Abono_Inicial_ocr =
+      result.data.data.Abono_Inicial === null
+        ? ""
+        : result.data.data.Abono_Inicial;
 
-    this.update(session_id, {user_session_keys: user_session_keys});
+    this.update(session_id, {
+      user_session_keys: [
+        { key: "Vig_inicial_ocr", value: Vig_inicial_ocr },
+        { key: "Vehiculo0kms_ocr", value: '"' + Vehiculo0kms_ocr + '"' },
+        { key: "TomadorReal_ocr", value: TomadorReal_ocr },
+        { key: "tipoVehiculo_ocr", value: tipoVehiculo_ocr },
+        { key: "Tipo_Documento_ocr", value: Tipo_Documento_ocr },
+        { key: "Sexo_ocr", value: Sexo_ocr },
+        { key: "Riesgo_ocr", value: Riesgo_ocr },
+        { key: "PrimaNetaHDI_ocr", value: PrimaNetaHDI_ocr },
+        { key: "Prima_Total_ocr", value: Prima_Total_ocr },
+        { key: "Placa_ocr", value: Placa_ocr },
+        { key: "oficina_ocr", value: oficina_ocr },
+        {
+          key: "Ocupacion_Titular_Credito_ocr",
+          value: Ocupacion_Titular_Credito_ocr,
+        },
+        { key: "ObservacionesAnexo_ocr", value: ObservacionesAnexo_ocr },
+        { key: "Obs_Portal_ocr", value: Obs_Portal_ocr },
+        { key: "NumeroDoc_ocr", value: NumeroDoc_ocr },
+        { key: "NovedadesOCR_ocr", value: NovedadesOCR_ocr },
+        { key: "Nombres_ocr", value: Nombres_ocr },
+        { key: "NoCertificado_ocr", value: NoCertificado_ocr },
+        { key: "No_Poliza_ocr", value: No_Poliza_ocr },
+        { key: "No_Cuotas_ocr", value: No_Cuotas_ocr },
+        { key: "Linea_ocr", value: Linea_ocr },
+        {
+          key: "Ingresos_Titular_Del_Credito_ocr",
+          value: Ingresos_Titular_Del_Credito_ocr,
+        },
+        { key: "Ing_Intermediario_ocr", value: Ing_Intermediario_ocr },
+        { key: "Idsucursal_ocr", value: Idsucursal_ocr },
+        { key: "IdSolicitante_ocr", value: IdSolicitante_ocr },
+        { key: "IdIntermediario_ocr", value: IdIntermediario_ocr },
+        { key: "Id_ocr", value: Id_ocr },
+        { key: "FechaNacimiento_ocr", value: FechaNacimiento_ocr },
+        { key: "FechaExpedicion_ocr", value: FechaExpedicion_ocr },
+        { key: "EstadoCivil_ocr", value: EstadoCivil_ocr },
+        { key: "Estado_ocr", value: Estado_ocr },
+        { key: "Es_Renovacion_ocr", value: Es_Renovacion_ocr },
+        {
+          key: "Documento_Poliza_ocr",
+          value: Documento_Poliza_ocr,
+        },
+        { key: "Doc_Tomador_ocr", value: Doc_Tomador_ocr },
+        { key: "Doc_Asegurado_ocr", value: Doc_Asegurado_ocr },
+        {
+          key: "DireccionDeResidencia_ocr",
+          value: DireccionDeResidencia_ocr,
+        },
+        {
+          key: "DepartamentoDeNacimiento_ocr",
+          value: DepartamentoDeNacimiento_ocr,
+        },
+        {
+          key: "DepartamentoDeExpedicion_ocr",
+          value: DepartamentoDeExpedicion_ocr,
+        },
+        {
+          key: "Correo_Electronico_ocr",
+          value: Correo_Electronico_ocr,
+        },
+        {
+          key: "CiudadDeResidencia_ocr",
+          value: CiudadDeResidencia_ocr,
+        },
+        {
+          key: "CiudadDeNacimiento_ocr",
+          value: CiudadDeNacimiento_ocr,
+        },
+        {
+          key: "CiudadDeExpedicion_ocr",
+          value: CiudadDeExpedicion_ocr,
+        },
+        {
+          key: "Cel_Titular_Credito_ocr",
+          value: Cel_Titular_Credito_ocr,
+        },
+        {
+          key: "Asesor_Intermediario_ocr",
+          value: Asesor_Intermediario_ocr,
+        },
+        { key: "Aseguradora_ocr", value: Aseguradora_ocr },
+        { key: "Apellidos_ocr", value: Apellidos_ocr },
+        { key: "Anexo_ocr", value: '"' + Anexo_ocr + '"' },
+        { key: "Abono_Inicial_ocr", value: Abono_Inicial_ocr },
+      ],
+    });
 
     return "procesando";
   };
 
-  updateData = async (session_id, data) => {
-    const result = await this.client.updateSession(session_id, data);
-    console.log(result);
+  updateData = async (data) => {
+    //const result = await this.client.updateSession(session_id, data);
+    console.log(data);
+  };
+
+  getCertificate = async (data) => {
+    let en_proceso = false;
+    let vigente = false;
+    let paz_y_salvo = false;
+
+    const session_id = data.session_id;
+    const token_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "token_crediseguro"
+    );
+
+    const estado_certificado = data.user_session_keys.find(
+      (item) => item.key === "estado_certificado"
+    );
+
+    const placa_certificado = data.user_session_keys.find(
+      (item) => item.key === "placa_certificado"
+    );
+
+    if (estado_certificado.value == "En Proceso") {
+      en_proceso = true;
+    }
+    if (estado_certificado.value == "Vigente") {
+      vigente = true;
+    }
+    if (estado_certificado.value == "Paz y Salvo") {
+      paz_y_salvo = true;
+    }
+
+    axios
+      .post(
+        "http://localhost:3001/api/credits",
+        {
+          Filtro: placa_certificado.value,
+          EstadoConsulta: "",
+          IdAseguradora: "",
+          Estado: "",
+          AllData: false,
+          Vigente: vigente,
+          Renovacion: false,
+          Mora: false,
+          EnProceso: en_proceso,
+          PazySalvo: paz_y_salvo,
+          NumeroRegistros: 10,
+          Cancelados: false,
+          EnProcesoCancelacion: false,
+          Inicial: 0,
+          Anio: "0",
+          Mes: "0",
+        },
+        {
+          headers: {
+            authorization: "Bearer " + token_crediseguro.value,
+            "content-type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+
+        if (response.data.data.Creditos) {
+
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "credito_certificado",
+                value: "1",
+              },
+              {
+                key: "id_credito_certificado",
+                value: response.data.data.Creditos[0].IdCredit,
+              },
+              {
+                key: "id_cliente_certificado",
+                value: response.data.data.Creditos[0].IdClient,
+              },
+              {
+                key: "nombre_credito_certificado",
+                value: response.data.data.Creditos[0].credito,
+              },
+            ],
+          });
+        } else {
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "credito_certificado",
+                value: "0",
+              },
+              {
+                key: "id_credito_certificado",
+                value: "",
+              },
+              {
+                key: "nombre_credito_certificado",
+                value: "",
+              },
+            ],
+          });
+        }
+      })
+      .catch((error) => {
+        console.log("llega3");
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "credito_certificado",
+              value: "0",
+            },
+          ],
+        });
+        console.error(error);
+      });
+  };
+
+  downloadCertificate = async (data) => {
+
+    const session_id = data.session_id;
+    let url = "";
+    let payload = "";
+    let name = "";
+
+    const token_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "token_crediseguro"
+    );
+
+    const id_credito_certificado = data.user_session_keys.find(
+      (item) => item.key === "id_credito_certificado"
+    );
+
+    const id_cliente_certificado = data.user_session_keys.find(
+      (item) => item.key === "id_cliente_certificado"
+    );
+
+    const nombre_credito_certificado = data.user_session_keys.find(
+      (item) => item.key === "nombre_credito_certificado"
+    );
+
+    const tipo_certificado = data.user_session_keys.find(
+      (item) => item.key === "tipo_certificado"
+    );
+
+    const metodo_certificado = data.user_session_keys.find(
+      (item) => item.key === "metodo_certificado"
+    );
+
+    if (tipo_certificado.value == "Recibo de Pago"){
+      name = "Recibo_de_pago";
+    }else if (tipo_certificado.value == "Estado Credito"){
+      name = "Estado_del_credito";
+    }else if (tipo_certificado.value == "Paz y Salvo"){
+      name = "paz_y_salvo";
+    }
+
+    if (metodo_certificado.value == "Mensaje") {
+      url = "http://localhost:3001/api/export-certificate";
+      payload = {
+        idCredito: id_credito_certificado,
+        tipoDoc: name,
+      };
+    } else if (metodo_certificado.value == "Correo") {
+      url = "http://localhost:3001/api/certificate";
+      payload = {
+        data: [
+          {
+            creditId: nombre_credito_certificado.value,
+            clientId: id_cliente_certificado.value,
+            nameCertificate: name,
+          },
+        ],
+      };
+    }
+
+    axios
+      .post(url, payload, {
+        headers: {
+          authorization: "Bearer " + token_crediseguro.value,
+          "content-type": "application/json",
+        },
+      })
+      .then((response) => {
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "certificado",
+                value: "1",
+              },
+            ],
+          });
+      })
+      .catch((error) => {
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "certificado",
+              value: "0",
+            },
+          ],
+        });
+        console.error(error);
+      });
   };
 }
 

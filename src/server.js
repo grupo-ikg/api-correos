@@ -3573,8 +3573,6 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
 );
 
 app.post("/treble", (req, res) => {
-  console.log(req.query.event);
-  console.log(req.body);
 
   switch (req.query.event) {
     case "autentication":
@@ -3611,9 +3609,7 @@ app.post("/treble", (req, res) => {
 
 });
 
-app.post("/treble_client", getTokenDev, (req, res) => {
-  console.log(req.query.event);
-  console.log(req.body);
+app.post("/treble_client", getToken, (req, res) => {
 
   switch (req.query.event) {
     case "validate":
@@ -3621,6 +3617,9 @@ app.post("/treble_client", getTokenDev, (req, res) => {
       break;
     case "credit":
       res.status(200).json(trebleClient.credit(req.token, req.body));
+      break;
+    case "creditRenovation":
+      res.status(200).json(trebleClient.creditRenovation(req.token, req.body));
       break;
     case "certificate":
       res

@@ -21,7 +21,30 @@ class Treble {
     });
   };
 
+  notificationChat = (phone, event) => {
+    const bodyText = {
+      text:
+        "Se realizo un proceso en el bot intermediario" +
+        JSON.stringify({
+          phone: phone,
+          event: event,
+        }),
+    };
+
+    axios({
+      method: "POST",
+      url: "https://chat.googleapis.com/v1/spaces/AAAAcWP8h6A/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=KEmIEVWDszYt6aWr74PF0nzPlMpGjGpXrj05r7xL0cs",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify(bodyText),
+    });
+  };
+
   autentication = async (data) => {
+
+    this.notificationChat(data.phone, "inicio nuevo proceso");
+
     const session_id = data.session_id;
     const claveInicio = data.user_session_keys.find(
       (item) => item.key === "clave_inicio"
@@ -32,14 +55,14 @@ class Treble {
 
     await axios({
       method: "POST",
-      url: "http://localhost:3001/api/login",
+      url: "https://portal.back-crediseguro.com/api/login",
       headers: {
         "Content-Type": "application/json",
       },
       data: JSON.stringify({
         document: nitInicio.value,
         password: Buffer.from(claveInicio.value).toString("base64"),
-        type: 0
+        type: 0,
       }),
     })
       .then(({ data }) => {
@@ -57,6 +80,9 @@ class Treble {
         });
       })
       .catch((error) => {
+
+        this.notificationChat(data.phone, error);
+
         this.update(session_id, {
           user_session_keys: [
             {
@@ -84,7 +110,7 @@ class Treble {
 
     let id_intermediario = await axios
       .put(
-        "http://localhost:3001/api/credit-ocr",
+        "https://portal.back-crediseguro.com/api/credit-ocr",
         {
           vig_inicial: null,
           sexo: null,
@@ -132,7 +158,7 @@ class Treble {
 
     axios
       .get(
-        "https://crediseguro-back.click/getDocument/" + numero_documento_1.value
+        "https://portal.back-crediseguro.com/getDocument/" + numero_documento_1.value
       )
       .then((response) => {
         if (response.data) {
@@ -173,6 +199,8 @@ class Treble {
       })
       .catch((error) => {
         console.log(error);
+        this.notificationChat(data.phone, error);
+
         this.update(session_id, {
           user_session_keys: [
             {
@@ -265,6 +293,8 @@ class Treble {
           console.log(response.data);
         })
         .catch((error) => {
+          this.notificationChat(data.phone, error);
+
           console.error(error);
         });
 
@@ -344,6 +374,7 @@ class Treble {
 
 
     if (!archivo_poliza) {
+      this.notificationChat(data.phone, "No se encontró 'archivo_poliza'");
       console.error("No se encontró 'archivo_poliza' en user_session_keys.");
       this.update(session_id, {
         user_session_keys: [
@@ -354,6 +385,11 @@ class Treble {
         ],
       });
     } else if (!archivo_poliza.value) {
+
+      this.notificationChat(
+        data.phone,
+        "'archivo_poliza' está presente pero no contiene un valor."
+      );
       console.error(
         "'archivo_poliza' está presente pero no contiene un valor."
       );
@@ -366,7 +402,7 @@ class Treble {
         ],
       });
     } else {
-      console.log("entrando a subir poliza");
+
       const aseguradora = data.user_session_keys.find(
         (item) => item.key === "aseguradora"
       );
@@ -488,6 +524,7 @@ class Treble {
           console.log(response.data);
         })
         .catch((error) => {
+          this.notificationChat(data.phone,error);
           console.error(error);
         });
 
@@ -538,6 +575,7 @@ class Treble {
     );
 
     if (!archivo_anexo) {
+      this.notificationChat(data.phone, "No se encontró 'archivo_anexo'");
       console.error("No se encontró 'archivo_anexo' en user_session_keys.");
       this.update(session_id, {
         user_session_keys: [
@@ -548,6 +586,7 @@ class Treble {
         ],
       });
     } else if (!archivo_anexo.value) {
+      this.notificationChat(data.phone, "'archivo_anexo' está presente pero no contiene un valor.");
       console.error("'archivo_anexo' está presente pero no contiene un valor.");
       this.update(session_id, {
         user_session_keys: [
@@ -617,7 +656,7 @@ class Treble {
     );
 
     const result = await axios.get(
-      "http://localhost:3001/api/credit-ocr?id=" +
+      "https://portal.back-crediseguro.com/api/credit-ocr?id=" +
         id_peticion_crediseguro.value,
       {
         headers: {
@@ -870,6 +909,8 @@ class Treble {
   };
 
   updateData = async (data) => {
+
+    this.notificationChat(data.phone, "guardando informacion poliza cargada");
     //const result = await this.client.updateSession(session_id, data);
     console.log(data);
   };
@@ -904,7 +945,7 @@ class Treble {
 
     axios
       .post(
-        "http://localhost:3001/api/credits",
+        "https://portal.back-crediseguro.com/api/credits",
         {
           Filtro: placa_certificado.value,
           EstadoConsulta: "",
@@ -931,9 +972,7 @@ class Treble {
         }
       )
       .then((response) => {
-
         if (response.data.data.Creditos) {
-
           this.update(session_id, {
             user_session_keys: [
               {
@@ -974,7 +1013,7 @@ class Treble {
         }
       })
       .catch((error) => {
-        console.log("llega3");
+        this.notificationChat(data.phone, error);
         this.update(session_id, {
           user_session_keys: [
             {
@@ -1027,13 +1066,13 @@ class Treble {
     }
 
     if (metodo_certificado.value == "Mensaje") {
-      url = "http://localhost:3001/api/export-certificate";
+      url = "https://portal.back-crediseguro.com/api/export-certificate";
       payload = {
         idCredito: id_credito_certificado,
         tipoDoc: name,
       };
     } else if (metodo_certificado.value == "Correo") {
-      url = "http://localhost:3001/api/certificate";
+      url = "https://portal.back-crediseguro.com/api/certificate";
       payload = {
         data: [
           {
@@ -1063,6 +1102,7 @@ class Treble {
           });
       })
       .catch((error) => {
+        this.notificationChat(data.phone, error);
         this.update(session_id, {
           user_session_keys: [
             {

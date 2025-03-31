@@ -51,9 +51,32 @@ class Treble {
   validaFormat = (fecha) => {
     const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
     return regex.test(fecha);
-  }
+  };
+
+  notificationChat = (phone, event) => {
+    const bodyText = {
+      text:
+        "Se realizo un proceso en el bot cliente" +
+        JSON.stringify({
+          phone: phone,
+          event: event,
+        }),
+    };
+
+    axios({
+      method: "POST",
+      url: "https://chat.googleapis.com/v1/spaces/AAAAcWP8h6A/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=KEmIEVWDszYt6aWr74PF0nzPlMpGjGpXrj05r7xL0cs",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify(bodyText),
+    });
+  };
 
   validate = async (token, data) => {
+
+    this.notificationChat(data.phone, "inicio nuevo proceso");
+
     const session_id = data.session_id;
 
     const documento = data.user_session_keys.find(
@@ -62,13 +85,13 @@ class Treble {
 
     await axios({
       method: "GET",
-      url: `https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/Info_Client/${documento.value}`,
+      url: `https://crediseguro.my.salesforce.com/services/apexrest/V1/Info_Client/${documento.value}`,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     }).then(({ data }) => {
-      if (data.IdCliente) {
+      if (data.IdCliente && data.Email !== null) {
         const valueEmail = data.Email;
         const valuePhone = data.Phone;
         const chars = 5; // Cantidad de caracters visibles
@@ -137,13 +160,86 @@ class Treble {
   credit = async (token, data) => {
     const session_id = data.session_id;
 
+    let estado_credito = "En Proceso";
+
+    const documento = data.user_session_keys.find(
+      (item) => item.key === "documento"
+    );
+
+    if (data.status === "pys") {
+      estado_credito = "Paz y Salvo"; 
+    }
+
+    axios
+      .post(
+        "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreditosTreble",
+        {
+          CCTomador: documento.value,
+          EstadoCredito: estado_credito,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((respuesta) => {
+        const salida = respuesta.data.creditosEncontrados
+          .map((cred) => {
+            return `*• No. de Crédito: ${cred.NombreCredito}*
+            *•	Aseguradora:* ${cred.aseguradora}
+            *•	Línea:* ${cred.Linea}
+            *•	Vigencias:* ${cred.vigenciaInicial} - ${cred.vigenciaFinal}
+            *•	Placa:* ${cred.Placa}
+            *•	Estado del crédito:* ${cred.EstadoCredito}`;
+          })
+          .join("\n\n");
+
+        this.update(session_id, {
+          user_session_keys: [
+            { key: "credito_crediseguro", value: "1" },
+            { key: "creditos", value: salida },
+            ...respuesta.data.creditosEncontrados.map((cred) => ({
+              key: cred.NombreCredito,
+              value: cred.IdCredito,
+            })),
+            ...respuesta.data.creditosEncontrados.map((cred) => ({
+              key: "VALOR-" + cred.NombreCredito,
+              value: "'" + cred.ValorFinanciado + "'",
+            })),
+          ],
+        });
+      })
+      .catch((error) => {
+        console.log("error");
+        console.log(error);
+
+        this.notificationChat(data.phone, error);
+
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "credito_crediseguro",
+              value: "0",
+            },
+          ],
+        });
+      });
+
+    return "procesando";
+  };
+
+  creditRenovation = async (token, data) => {
+    const session_id = data.session_id;
+
     const documento = data.user_session_keys.find(
       (item) => item.key === "documento"
     );
 
     axios
       .post(
-        "https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/CreditosTreble",
+        "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreditosTreble",
         {
           CCTomador: documento.value,
           EstadoCredito: "En Proceso",
@@ -158,12 +254,16 @@ class Treble {
       .then((respuesta) => {
         const salida = respuesta.data.creditosEncontrados
           .map((cred) => {
-            return `${cred.NombreCredito}
-          Aseguradora: ${cred.aseguradora}
-          Vigencias: ${cred.vigenciaInicial} - ${cred.vigenciaFinal}
-          Línea: ${cred.Linea}
-          Valor: ${cred.ValorFinanciado}
-          Estado: ${cred.EstadoCredito}`;
+            return `*• No. de Crédito: ${cred.NombreCredito}*
+            *•	Aseguradora:* ${cred.aseguradora}
+            *•	Línea:* ${cred.Linea}
+            *•	Vigencias:* ${cred.vigenciaInicial} - ${cred.vigenciaFinal}
+            *•	Placa:* ${cred.Placa}
+            *•	Estado del crédito:* ${cred.EstadoCredito}
+            *Datos del Intermediario:*
+            → ${cred.IntermediarioNombre}
+            → ${cred.IntermediarioEmail} 
+            → ${cred.IntermediarioCelular}`;
           })
           .join("\n\n");
 
@@ -181,6 +281,8 @@ class Treble {
       .catch((error) => {
         console.log("error");
         console.log(error);
+        this.notificationChat(data.phone, error);
+
         this.update(session_id, {
           user_session_keys: [
             {
@@ -215,11 +317,11 @@ class Treble {
         const config = {
           method: "post",
           maxBodyLength: Infinity,
-          url: "http://localhost:3001/api/export-certificate", // Asegúrate de incluir "http://"
+          url: "https://portal.back-crediseguro.com/api/export-certificate",
           headers: {
             "Content-Type": "application/json",
             Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmFhYThkY2EzOTdlYzMwMzVhOTg1Y2IiLCJ1c2VySWQiOiIwMDEzaDAwMDAwRGdWNVNBQVYiLCJkb2N1bWVudCI6Ijk5OTAzODYwOCIsIm5hbWUiOiJBZG1pbmlzdHJhZG9yIiwiZW1haWwiOiJjYXJ0ZXJhQGNhdmNhLmNvbS5jbyIsInBob25lIjoiMzIwNDc3NDEzOCIsInByb2ZpbGUiOiJBZG1pbiIsImlhdCI6MTc0MTYzNDA1NCwiZXhwIjoxNzQ0MjI2MDU0fQ.KXJAk4PRg2lumPJBLbUEjIxzOKnQC-zhxbzCAEmwbhw", // Reemplaza <TU_TOKEN> por tu token real
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmFhYThkY2EzOTdlYzMwMzVhOTg1Y2IiLCJ1c2VySWQiOiIwMDEzaDAwMDAwRGdWNVNBQVYiLCJkb2N1bWVudCI6Ijk5OTAzODYwOCIsIm5hbWUiOiJBZG1pbmlzdHJhZG9yIiwiZW1haWwiOiJjYXJ0ZXJhQGNhdmNhLmNvbS5jbyIsInBob25lIjoiMzIwNDc3NDEzOCIsInByb2ZpbGUiOiJBZG1pbiIsImlhdCI6MTc0MzQzNDkzMCwiZXhwIjoxNzQ2MDI2OTMwfQ.l_3ZHqluWYovAHFbZHGQAn9PexWME9l-1GjQ-B2t6d4",
           },
           data: JSON.stringify(payload),
           responseType: "arraybuffer", // Esto hace que Axios devuelva un ArrayBuffer
@@ -243,6 +345,9 @@ class Treble {
             ],
           });
         } catch (error) {
+
+          this.notificationChat(data.phone, error);
+
           this.update(session_id, {
             user_session_keys: [
               {
@@ -305,7 +410,7 @@ class Treble {
 
       axios
         .post(
-          "https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/CrearCaso",
+          "https://crediseguro.my.salesforce.com/services/apexrest/V1/CrearCaso",
           {
             idCredito: id_credito.value,
           },
@@ -328,6 +433,8 @@ class Treble {
         .catch((error) => {
           console.log("error");
           console.log(error);
+          this.notificationChat(data.phone, error);
+
           this.update(session_id, {
             user_session_keys: [
               {
@@ -368,9 +475,13 @@ class Treble {
           (item) => item.key === "CRED-" + numero_credito.value
         );
 
+        const valor_credito = data.user_session_keys.find(
+          (item) => item.key === "VALOR-CRED-" + numero_credito.value
+        );
+
         axios
           .post(
-            "https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/CreacionPAC",
+            "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreacionPAC",
             {
               idCredito: id_credito.value,
               fechaPAC: fecha_acuerdo.value,
@@ -387,19 +498,35 @@ class Treble {
 
             if (response.estadoPAC === "PAC Creado") {
 
+              const salida = `
+              "CRED - "${numero_credito.value}
+              Fecha máxima para realizar el pago: ${fecha_acuerdo.value}
+              Valor a pagar: ${valor_credito.value}`;
+
               this.update(session_id, {
-                user_session_keys: [{ key: "estado_pac", value: "1" }],
+                user_session_keys: [
+                  { key: "estado_pac", value: "1" },
+                  { key: "salida_pac", value: salida}
+                ],
               });
             } else {
 
+              const salida = "La fecha indicada supera la política permitida para liquidación de PAC.";
+
               this.update(session_id, {
-                user_session_keys: [{ key: "estado_pac", value: "0" }],
+                user_session_keys: [
+                  { key: "estado_pac", value: "3" },
+                  { key: "salida_pac", value: salida }
+                ],
               });
             }
           })
           .catch((error) => {
             console.log("error");
             console.log(error);
+
+            this.notificationChat(data.phone, error);
+
             this.update(session_id, {
               user_session_keys: [
                 {

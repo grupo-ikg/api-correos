@@ -75,7 +75,7 @@ class Treble {
 
   validate = async (token, data) => {
 
-    this.notificationChat(data.phone, "inicio nuevo proceso");
+    this.notificationChat(data.cellphone, "inicio nuevo proceso");
 
     const session_id = data.session_id;
 
@@ -215,7 +215,7 @@ class Treble {
         console.log("error");
         console.log(error);
 
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
 
         this.update(session_id, {
           user_session_keys: [
@@ -281,7 +281,7 @@ class Treble {
       .catch((error) => {
         console.log("error");
         console.log(error);
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
 
         this.update(session_id, {
           user_session_keys: [
@@ -346,7 +346,7 @@ class Treble {
           });
         } catch (error) {
 
-          this.notificationChat(data.phone, error);
+          this.notificationChat(data.cellphone, error);
 
           this.update(session_id, {
             user_session_keys: [
@@ -433,7 +433,7 @@ class Treble {
         .catch((error) => {
           console.log("error");
           console.log(error);
-          this.notificationChat(data.phone, error);
+          this.notificationChat(data.cellphone, error);
 
           this.update(session_id, {
             user_session_keys: [
@@ -525,7 +525,7 @@ class Treble {
             console.log("error");
             console.log(error);
 
-            this.notificationChat(data.phone, error);
+            this.notificationChat(data.cellphone, error);
 
             this.update(session_id, {
               user_session_keys: [

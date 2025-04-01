@@ -43,7 +43,7 @@ class Treble {
 
   autentication = async (data) => {
 
-    this.notificationChat(data.phone, "inicio nuevo proceso");
+    this.notificationChat(data.cellphone, "inicio nuevo proceso");
 
     const session_id = data.session_id;
     const claveInicio = data.user_session_keys.find(
@@ -81,7 +81,7 @@ class Treble {
       })
       .catch((error) => {
 
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
 
         this.update(session_id, {
           user_session_keys: [
@@ -199,7 +199,7 @@ class Treble {
       })
       .catch((error) => {
         console.log(error);
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
 
         this.update(session_id, {
           user_session_keys: [
@@ -293,7 +293,7 @@ class Treble {
           console.log(response.data);
         })
         .catch((error) => {
-          this.notificationChat(data.phone, error);
+          this.notificationChat(data.cellphone, error);
 
           console.error(error);
         });
@@ -374,7 +374,7 @@ class Treble {
 
 
     if (!archivo_poliza) {
-      this.notificationChat(data.phone, "No se encontró 'archivo_poliza'");
+      this.notificationChat(data.cellphone, "No se encontró 'archivo_poliza'");
       console.error("No se encontró 'archivo_poliza' en user_session_keys.");
       this.update(session_id, {
         user_session_keys: [
@@ -387,7 +387,7 @@ class Treble {
     } else if (!archivo_poliza.value) {
 
       this.notificationChat(
-        data.phone,
+        data.cellphone,
         "'archivo_poliza' está presente pero no contiene un valor."
       );
       console.error(
@@ -524,7 +524,7 @@ class Treble {
           console.log(response.data);
         })
         .catch((error) => {
-          this.notificationChat(data.phone,error);
+          this.notificationChat(data.cellphone,error);
           console.error(error);
         });
 
@@ -575,7 +575,7 @@ class Treble {
     );
 
     if (!archivo_anexo) {
-      this.notificationChat(data.phone, "No se encontró 'archivo_anexo'");
+      this.notificationChat(data.cellphone, "No se encontró 'archivo_anexo'");
       console.error("No se encontró 'archivo_anexo' en user_session_keys.");
       this.update(session_id, {
         user_session_keys: [
@@ -586,7 +586,7 @@ class Treble {
         ],
       });
     } else if (!archivo_anexo.value) {
-      this.notificationChat(data.phone, "'archivo_anexo' está presente pero no contiene un valor.");
+      this.notificationChat(data.cellphone, "'archivo_anexo' está presente pero no contiene un valor.");
       console.error("'archivo_anexo' está presente pero no contiene un valor.");
       this.update(session_id, {
         user_session_keys: [
@@ -910,7 +910,7 @@ class Treble {
 
   updateData = async (data) => {
 
-    this.notificationChat(data.phone, "guardando informacion poliza cargada");
+    this.notificationChat(data.cellphone, "guardando informacion poliza cargada");
     //const result = await this.client.updateSession(session_id, data);
     console.log(data);
   };
@@ -1013,7 +1013,7 @@ class Treble {
         }
       })
       .catch((error) => {
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
         this.update(session_id, {
           user_session_keys: [
             {
@@ -1102,7 +1102,7 @@ class Treble {
           });
       })
       .catch((error) => {
-        this.notificationChat(data.phone, error);
+        this.notificationChat(data.cellphone, error);
         this.update(session_id, {
           user_session_keys: [
             {

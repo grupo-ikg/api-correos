@@ -167,15 +167,26 @@ class Treble {
     );
 
     if (data.status === "pys") {
-      estado_credito = "Paz y Salvo"; 
+      estado_credito = {
+        Estado1: "Paz y Salvo",
+        Estado2: "",
+        Estado3: "",
+        Estado4: "",
+        Estado5: "",
+        Estado6: "",
+        Estado7: "",
+        Estado8: "",
+        Estado9: "",
+      };      
     }
+
 
     axios
       .post(
         "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreditosTreble",
         {
           CCTomador: documento.value,
-          EstadoCredito: estado_credito,
+          EstadoCredito: [estado_credito],
         },
         {
           headers: {

@@ -74,7 +74,6 @@ class Treble {
   };
 
   validate = async (token, data) => {
-
     this.notificationChat(data.cellphone, "inicio nuevo proceso");
 
     const session_id = data.session_id;
@@ -157,16 +156,17 @@ class Treble {
     return "procesando";
   };
 
-  credit = async (token, data) => {
+  credit = async (token, data, status) => {
     const session_id = data.session_id;
 
-    let estado_credito = "En Proceso";
+    let estado_credito = "";
 
     const documento = data.user_session_keys.find(
       (item) => item.key === "documento"
     );
 
-    if (data.status === "pys") {
+    if (status === "pys") {
+      // paz y salvo
       estado_credito = {
         Estado1: "Paz y Salvo",
         Estado2: "",
@@ -177,9 +177,47 @@ class Treble {
         Estado7: "",
         Estado8: "",
         Estado9: "",
-      };      
+      };
+    } else if (status === "ec" || status === "fmp") {
+      // estado credito, formas y medios de pago
+      estado_credito = {
+        Estado1: "Vigente",
+        Estado2: "Devuelto",
+        Estado3: "En proceso",
+        Estado4: "Cancelado",
+        Estado5: "Anulado",
+        Estado6: "Proceso de Cancelacion Avisado",
+        Estado7: "En proceso de cancelacion",
+        Estado8: "Por desembolsar",
+        Estado9: "",
+      };
+    } else if (status === "ct") {
+      // certificado tributario
+      estado_credito = {
+        Estado1: "Paz y Salvo",
+        Estado2: "Devuelto",
+        Estado3: "En proceso",
+        Estado4: "Cancelado",
+        Estado5: "Anulado",
+        Estado6: "Proceso de Cancelacion Avisado",
+        Estado7: "En proceso de cancelacion",
+        Estado8: "Por desembolsar",
+        Estado9: "Vigente",
+      };
+    } else if (status === "ic") {
+      // informacion coberturas
+      estado_credito = {
+        Estado1: "Vigente",
+        Estado2: "En proceso",
+        Estado3: "",
+        Estado4: "",
+        Estado5: "",
+        Estado6: "",
+        Estado7: "",
+        Estado8: "",
+        Estado9: "",
+      };
     }
-
 
     axios
       .post(
@@ -253,7 +291,19 @@ class Treble {
         "https://crediseguro.my.salesforce.com/services/apexrest/V1/CreditosTreble",
         {
           CCTomador: documento.value,
-          EstadoCredito: "En Proceso",
+          EstadoCredito: [
+            {
+              Estado1: "Paz y Salvo",
+              Estado2: "Vigente",
+              Estado3: "En proceso de cancelacion",
+              Estado4: "",
+              Estado5: "",
+              Estado6: "",
+              Estado7: "",
+              Estado8: "",
+              Estado9: "",
+            },
+          ],
         },
         {
           headers: {
@@ -272,9 +322,10 @@ class Treble {
             *•	Placa:* ${cred.Placa}
             *•	Estado del crédito:* ${cred.EstadoCredito}
             *Datos del Intermediario:*
-            → ${cred.IntermediarioNombre}
-            → ${cred.IntermediarioEmail} 
-            → ${cred.IntermediarioCelular}`;
+            → Nombre: ${cred.IntermediarioNombre} 
+            → Asesor: ${cred.NombreAsesorComercial}
+            → Correo: ${cred.CorreoAsesorComercial} 
+            → Celular: ${cred.CelularAsesorComercial}`;
           })
           .join("\n\n");
 
@@ -338,6 +389,8 @@ class Treble {
           responseType: "arraybuffer", // Esto hace que Axios devuelva un ArrayBuffer
         };
 
+        console.log(config);
+
         try {
           const nameFile = tipo + ": CRED-" + numero_credito.value;
           const response = await axios.request(config);
@@ -356,7 +409,6 @@ class Treble {
             ],
           });
         } catch (error) {
-
           this.notificationChat(data.cellphone, error);
 
           this.update(session_id, {
@@ -508,7 +560,6 @@ class Treble {
             const response = respuesta.data;
 
             if (response.estadoPAC === "PAC Creado") {
-
               const salida = `
               "CRED - "${numero_credito.value}
               Fecha máxima para realizar el pago: ${fecha_acuerdo.value}
@@ -517,17 +568,17 @@ class Treble {
               this.update(session_id, {
                 user_session_keys: [
                   { key: "estado_pac", value: "1" },
-                  { key: "salida_pac", value: salida}
+                  { key: "salida_pac", value: salida },
                 ],
               });
             } else {
-
-              const salida = "La fecha indicada supera la política permitida para liquidación de PAC.";
+              const salida =
+                "La fecha indicada supera la política permitida para liquidación de PAC.";
 
               this.update(session_id, {
                 user_session_keys: [
                   { key: "estado_pac", value: "3" },
-                  { key: "salida_pac", value: salida }
+                  { key: "salida_pac", value: salida },
                 ],
               });
             }

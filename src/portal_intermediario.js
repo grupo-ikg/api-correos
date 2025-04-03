@@ -20,6 +20,15 @@ class Treble {
       },
     });
   };
+  async shortenUrl(longUrl) {
+    try {
+        const response = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error acortando la URL:', error);
+        return null;
+    }
+  }
 
   notificationChat = (phone, event) => {
     const bodyText = {
@@ -158,7 +167,8 @@ class Treble {
 
     axios
       .get(
-        "https://portal.back-crediseguro.com/getDocument/" + numero_documento_1.value
+        "https://back-crediseguro.com/getDocument/" +
+          numero_documento_1.value
       )
       .then((response) => {
         if (response.data) {
@@ -337,6 +347,7 @@ class Treble {
     const session_id = data.session_id;
     let insurance = "";
     let type_doc = "";
+    let id_aseguradora = "";
 
     const archivo_poliza = data.user_session_keys.find(
       (item) => item.key === "archivo_poliza"
@@ -410,8 +421,10 @@ class Treble {
       if (aseguradora.value == "AXA Colpatria Seguros S.A") {
         insurance = "AXA-0013h00000GiwbUAAR";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbUAAR";
       } else if (aseguradora.value == "Compañía Seguros Mundial S.A.") {
         insurance = "MUNDIAL-0013h00000GiwbWAAR";
+        id_aseguradora = "0013h00000GiwbWAAR";
         if (mundial_formato_1.value == "Si") {
           type_doc = "formato_1";
         } else if (
@@ -423,6 +436,7 @@ class Treble {
       } else if (aseguradora.value == "Seguros Bolivar S.A.") {
         insurance = "BOLIVAR-0013h00000GiwbdAAB";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbdAAB";
       } else if (aseguradora.value == "La Equidad Seguros Generales S.A.") {
         insurance = "EQUIDAD-0013h00000DgV5TAAV";
         if (equidad_formato_1.value == "Si") {
@@ -433,9 +447,11 @@ class Treble {
         ) {
           type_doc = "formato_2";
         }
+        id_aseguradora = "0013h00000DgV5TAAV";
       } else if (aseguradora.value == "SBS Seguros Colombia S.A.") {
         insurance = "SBS";
         type_doc = "SBS-0013h00000GiwbcAAB";
+        id_aseguradora = "0013h00000GiwbcAAB";
       } else if (aseguradora.value == "Aseguradora Solidaria de Colombia") {
         insurance = "SOLIDARIA-0013h00000GiwbTAAR";
         if (solidaria_formato_1.value == "Si") {
@@ -459,18 +475,23 @@ class Treble {
         ) {
           type_doc = "formato_4";
         }
+        id_aseguradora = "0013h00000GiwbTAAR";
       } else if (aseguradora.value == "HDI Seguros S.A.") {
         insurance = "HDI-0013h00000DgTUOAA3";
         type_doc = "other";
+        id_aseguradora = "0013h00000DgTUOAA3";
       } else if (aseguradora.value == "La Previsora S.A.") {
         insurance = "PREVISORA-0013h00000GiwbYAAR";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbYAAR";
       } else if (aseguradora.value == "Allianz Colombia S.A.") {
         insurance = "ALLIANZ-0013h00000DgPwsAAF";
         type_doc = "other";
+        id_aseguradora = "0013h00000DgPwsAAF";
       } else if (aseguradora.value == "Mapfre Seguros Generales de Colombia S.A.") {
         insurance = "MAPFRE-0013h00000GiwbaAAB";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbaAAB";
       } else if (aseguradora.value == "Seguros Generales Suramericana S.A.") {
         insurance = "SURA-0013h00000GiwbfAAB";
         if (sura_formato_1.value == "Si") {
@@ -481,12 +502,15 @@ class Treble {
         ) {
           type_doc = "formato_2";
         }
+        id_aseguradora = "0013h00000GiwbfAAB";
       } else if (aseguradora.value == "Zurich Colombia Seguros S.A.") {
         insurance = "ZURICH-0013h00000GiwbbAAB";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbbAAB";
       } else if (aseguradora.value == "Liberty Seguros S.A.") {
         insurance = "LIBERTY-0013h00000GiwbZAAR";
         type_doc = "other";
+        id_aseguradora = "0013h00000GiwbZAAR";
       }
 
       const id_peticion_crediseguro = data.user_session_keys.find(
@@ -554,6 +578,7 @@ class Treble {
             key: "poliza_cargada_crediseguro",
             value: "1",
           },
+          { key: "id_aseguradora", value: id_aseguradora },
         ],
       });
 
@@ -1114,6 +1139,56 @@ class Treble {
         console.error(error);
       });
   };
+
+  urlPortal = async (data) => {
+    const session_id = data.session_id;
+
+    const token_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "token_crediseguro"
+    );
+    const id_peticion_crediseguro = data.user_session_keys.find(
+      (item) => item.key === "id_peticion_crediseguro"
+    );
+
+    const tipo_credito = data.user_session_keys.find(
+      (item) => item.key === "tipo_credito_1"
+    );
+
+    const id_aseguradora = data.user_session_keys.find(
+      (item) => item.key === "id_aseguradora"
+    );
+
+
+    const texto =
+      "whastapp/" +
+      token_crediseguro.value +
+      "/" +
+      id_peticion_crediseguro.value +
+      "/" +
+      session_id
+      +"/"+tipo_credito.value
+      +"/"+id_aseguradora.value;
+    
+    const base64 = Buffer.from(texto).toString("base64");
+
+    //const url = "https://prototipoportal.crediseguro.co/admin/crear-credito/formulario?data="+base64;
+
+    const url =
+      "http://localhost:3000/admin/crear-credito/formulario?data=" +
+      base64;  
+      
+
+    const shortUrl = await this.shortenUrl(url);
+
+    this.update(session_id, {
+      user_session_keys: [
+        {
+          key: "url_portal",
+          value: shortUrl,
+        },
+      ],
+    });
+  }
 }
 
 module.exports = new Treble();

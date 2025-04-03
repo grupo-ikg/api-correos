@@ -3516,13 +3516,13 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   }
 });
 
-app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
+app.post("/bridge_connection_crediseguro", verifyToken, getToken,  (req, res) => {
 
   // Lógica según el evento recibido
   if (req.body.event) {
       axios({
         method: "POST",
-        url:"https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/" +
+        url:"https://crediseguro.my.salesforce.com/services/apexrest/V1/" +
           req.body.event,
         data: JSON.stringify(req.body),
         headers: {
@@ -3543,14 +3543,14 @@ app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res)
   res.status(200).json({ message: "Webhook recibido correctamente" });
 });
 
-app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
+app.post("/bridge_connection_cavca", verifyToken, getTokenCavca , (req, res) => {
 
     // Lógica según el evento recibido
     if (req.body.event) {
       axios({
         method: "POST",
         url:
-          "https://cavca--preproducc.sandbox.my.salesforce.com/services/apexrest/V1/" +
+          "https://cavca.my.salesforce.com/services/apexrest/V1/" +
           req.body.event,
         data: JSON.stringify(req.body),
         headers: {
@@ -3604,6 +3604,9 @@ app.post("/treble", (req, res) => {
     case "downloadCertificate":
       res.status(200).json(treble.downloadCertificate(req.body));
       break;
+    case "urlPortal":
+      res.status(200).json(treble.urlPortal(req.body));
+      break;
     default:
       res.status(400).json({ error: "Evento no reconocido" });
       return;
@@ -3620,15 +3623,13 @@ app.post("/treble_client", getToken, (req, res) => {
       res.status(200).json(trebleClient.validate(req.token, req.body));
       break;
     case "credit":
-      res.status(200).json(trebleClient.credit(req.token, req.body));
+      res.status(200).json(trebleClient.credit(req.token, req.body, req.query.status));
       break;
     case "creditRenovation":
       res.status(200).json(trebleClient.creditRenovation(req.token, req.body));
       break;
     case "certificate":
-      res
-        .status(200)
-        .json(trebleClient.certificate(req.token, req.body, req.query.type));
+      res.status(200).json(trebleClient.certificate(req.token, req.body, req.query.type));
       break;
     case "video_tutorial":
       res.status(200).json(trebleClient.video_tutorial(req.body));

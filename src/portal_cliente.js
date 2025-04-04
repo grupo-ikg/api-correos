@@ -118,30 +118,42 @@ class Treble {
           mascara +
           valuePhone.substring(valuePhone.length - 2);
 
-        this.update(session_id, {
-          user_session_keys: [
-            {
-              key: "valida_documento_crediseguro",
-              value: "1",
-            },
-            {
-              key: "id_cliente",
-              value: data.IdCliente,
-            },
-            {
-              key: "nombre_cliente",
-              value: data.Nombre,
-            },
-            {
-              key: "telefono_cliente",
-              value: phone_masked,
-            },
-            {
-              key: "correo_cliente",
-              value: email_masked,
-            },
-          ],
-        });
+        if (valuePhone == data.cellphone){
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "valida_documento_crediseguro",
+                value: "1",
+              },
+              {
+                key: "id_cliente",
+                value: data.IdCliente,
+              },
+              {
+                key: "nombre_cliente",
+                value: data.Nombre,
+              },
+              {
+                key: "telefono_cliente",
+                value: phone_masked,
+              },
+              {
+                key: "correo_cliente",
+                value: email_masked,
+              },
+            ],
+          });
+        }else {
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "valida_documento_crediseguro",
+                value: "2",
+              },
+            ],
+          });          
+        }
+
       } else {
         this.update(session_id, {
           user_session_keys: [

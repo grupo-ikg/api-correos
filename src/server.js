@@ -3516,13 +3516,13 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   }
 });
 
-app.post("/bridge_connection_crediseguro", verifyToken, getToken,  (req, res) => {
+app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
 
   // Lógica según el evento recibido
   if (req.body.event) {
       axios({
         method: "POST",
-        url:"https://crediseguro.my.salesforce.com/services/apexrest/V1/" +
+        url:"https://crediseguro--desarrollo.sandbox.my.salesforce.com/services/apexrest/V1/" +
           req.body.event,
         data: JSON.stringify(req.body),
         headers: {
@@ -3543,14 +3543,14 @@ app.post("/bridge_connection_crediseguro", verifyToken, getToken,  (req, res) =>
   res.status(200).json({ message: "Webhook recibido correctamente" });
 });
 
-app.post("/bridge_connection_cavca", verifyToken, getTokenCavca , (req, res) => {
+app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
 
     // Lógica según el evento recibido
     if (req.body.event) {
       axios({
         method: "POST",
         url:
-          "https://cavca.my.salesforce.com/services/apexrest/V1/" +
+          "https://cavca--preproducc.sandbox.my.salesforce.com/services/apexrest/V1/" +
           req.body.event,
         data: JSON.stringify(req.body),
         headers: {

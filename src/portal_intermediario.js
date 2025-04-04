@@ -64,7 +64,7 @@ class Treble {
 
     await axios({
       method: "POST",
-      url: "https://portal.back-crediseguro.com/api/login",
+      url: "https://dev.back-crediseguro.com/api/login",
       headers: {
         "Content-Type": "application/json",
       },
@@ -646,7 +646,7 @@ class Treble {
 
       // 4. Ejecutar la solicitud POST a la API
       const result = await axios.post(
-        "https://portal.back-crediseguro.com/api/upload-document",
+        "https://dev.back-crediseguro.com/api/upload-document",
         payload,
         {
           headers: {
@@ -681,7 +681,7 @@ class Treble {
     );
 
     const result = await axios.get(
-      "https://portal.back-crediseguro.com/api/credit-ocr?id=" +
+      "https://dev.back-crediseguro.com/api/credit-ocr?id=" +
         id_peticion_crediseguro.value,
       {
         headers: {
@@ -933,13 +933,6 @@ class Treble {
     return "procesando";
   };
 
-  updateData = async (data) => {
-
-    this.notificationChat(data.cellphone, "guardando informacion poliza cargada");
-    //const result = await this.client.updateSession(session_id, data);
-    console.log(data);
-  };
-
   getCertificate = async (data) => {
     let en_proceso = false;
     let vigente = false;
@@ -970,7 +963,7 @@ class Treble {
 
     axios
       .post(
-        "https://portal.back-crediseguro.com/api/credits",
+        "https://dev.back-crediseguro.com/api/credits",
         {
           Filtro: placa_certificado.value,
           EstadoConsulta: "",
@@ -1091,13 +1084,13 @@ class Treble {
     }
 
     if (metodo_certificado.value == "Mensaje") {
-      url = "https://portal.back-crediseguro.com/api/export-certificate";
+      url = "https://dev.back-crediseguro.com/api/export-certificate";
       payload = {
         idCredito: id_credito_certificado,
         tipoDoc: name,
       };
     } else if (metodo_certificado.value == "Correo") {
-      url = "https://portal.back-crediseguro.com/api/certificate";
+      url = "https://dev.back-crediseguro.com/api/certificate";
       payload = {
         data: [
           {
@@ -1171,12 +1164,13 @@ class Treble {
     
     const base64 = Buffer.from(texto).toString("base64");
 
-    //const url = "https://prototipoportal.crediseguro.co/admin/crear-credito/formulario?data="+base64;
+    const route = tipo_credito.value == "new_credit"?"formulario":"formulario-renovacion";
 
     const url =
-      "http://localhost:3000/admin/crear-credito/formulario?data=" +
+      "https://prototipoportal.crediseguro.co/admin/crear-credito/" +
+      route +
+      "?data=" +
       base64;  
-      
 
     const shortUrl = await this.shortenUrl(url);
 

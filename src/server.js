@@ -1905,6 +1905,11 @@ app.get("/getDocument/:document", getToken, (req, res) => {
         data: "",
       });
     }
+  }).catch((error) => {
+    console.log(error);
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
   });
 });
 
@@ -3517,7 +3522,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
 });
 
 app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
-
+console.log(req.body);
   // Lógica según el evento recibido
   if (req.body.event) {
       axios({
@@ -3545,6 +3550,7 @@ app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res)
 
 app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
 
+  console.log(req.body);
     // Lógica según el evento recibido
     if (req.body.event) {
       axios({

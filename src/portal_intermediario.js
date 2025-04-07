@@ -108,6 +108,7 @@ class Treble {
   validate = async (data) => {
     const session_id = data.session_id;
     const id_peticion = this.generarId(12);
+    let code_validate ="";
 
     const token_crediseguro = data.user_session_keys.find(
       (item) => item.key === "token_crediseguro"
@@ -117,40 +118,10 @@ class Treble {
       (item) => item.key === "numero_documento_1"
     );
 
-    let id_intermediario = await axios
-      .put(
-        "https://portal.back-crediseguro.com/api/credit-ocr",
-        {
-          vig_inicial: null,
-          sexo: null,
-          prima_total: null,
-          placa: null,
-          ocupacion_titular_credito: null,
-          numero_doc: null,
-          nombres: null,
-          no_poliza: null,
-          no_cuotas: null,
-          linea: null,
-          ingresos_titular_del_credito: null,
-          id: id_peticion,
-          fecha_nacimiento: null,
-          fecha_expedicion: null,
-          estado_civil: null,
-          departamento_nacimiento: null,
-          departamento_expedicion: null,
-          correo_electronico: null,
-          ciudad_nacimiento: null,
-          ciudad_expedicion: null,
-          cel_titular_credito: null,
-          asesor_intermediario: null,
-          apellidos: "Treble",
-          abono_inicial: null,
-          id_sucursal: null,
-          ciudad_residencia: null,
-          direccion_residencia: null,
-          es_renovacion: false,
-          vehiculo0kms: false,
-        },
+    axios
+      .get(
+        "https://dev.back-crediseguro.com/api/validate-status-quotas?noDocumento=" +
+          numero_documento_1.value,
         {
           headers: {
             authorization: "Bearer " + token_crediseguro.value,
@@ -159,52 +130,34 @@ class Treble {
         }
       )
       .then((response) => {
-        return response.data.data.IdIntermediario;
-      })
-      .catch((error) => {
-        return "0";
-      });
 
-    axios
-      .get(
-        "https://back-crediseguro.com/getDocument/" +
-          numero_documento_1.value
-      )
-      .then((response) => {
         if (response.data) {
-          this.update(session_id, {
-            user_session_keys: [
-              {
-                key: "valida_documento_crediseguro",
-                value: "1",
-              },
-              {
-                key: "id_peticion_crediseguro",
-                value: id_peticion,
-              },
-              {
-                key: "id_intermediario_crediseguro",
-                value: id_intermediario,
-              },
-            ],
-          });
-        } else {
-          this.update(session_id, {
-            user_session_keys: [
-              {
-                key: "valida_documento_crediseguro",
-                value: "2",
-              },
-              {
-                key: "id_peticion_crediseguro",
-                value: id_peticion,
-              },
-              {
-                key: "id_intermediario_crediseguro",
-                value: id_intermediario,
-              },
-            ],
-          });
+          if (response.data?.data.RespConsultaVrPendiente) {
+            // pendiente
+            code_validate = "002";
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "valida_documento_crediseguro",
+                  value: "3",
+                },
+              ],
+            });
+
+            return "procesando";
+          } else if (response.data?.data.RespConsultamora) {
+            // mora
+            code_validate = "003";
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "valida_documento_crediseguro",
+                  value: "4",
+                },
+              ],
+            });
+            return "procesando";
+          }
         }
       })
       .catch((error) => {
@@ -228,6 +181,123 @@ class Treble {
           ],
         });
       });
+
+    let id_intermediario = await axios
+      .put(
+        "https://dev.back-crediseguro.com/api/credit-ocr",
+        {
+          vig_inicial: null,
+          sexo: null,
+          prima_total: null,
+          placa: null,
+          ocupacion_titular_credito: null,
+          numero_doc: numero_documento_1.value,
+          nombres: null,
+          no_poliza: null,
+          no_cuotas: null,
+          linea: null,
+          ingresos_titular_del_credito: null,
+          id: id_peticion,
+          fecha_nacimiento: null,
+          fecha_expedicion: null,
+          estado_civil: null,
+          departamento_nacimiento: null,
+          departamento_expedicion: null,
+          correo_electronico: null,
+          ciudad_nacimiento: null,
+          ciudad_expedicion: null,
+          cel_titular_credito: null,
+          asesor_intermediario: null,
+          apellidos: "Treble",
+          abono_inicial: null,
+          id_sucursal: null,
+          ciudad_residencia: null,
+          direccion_residencia: null,
+          es_renovacion: false,
+          vehiculo0kms: false,
+          credito_en_proceso: false,
+          //novedadesOCR: code_validate
+        },
+        {
+          headers: {
+            authorization: "Bearer " + token_crediseguro.value,
+            "content-type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        return response.data.data.IdIntermediario;
+      })
+      .catch((error) => {
+        this.notificationChat(data.cellphone, error);
+        return "0";
+      });
+    
+    if (code_validate == ""){
+      axios
+        .get(
+          "https://dev.back-crediseguro.com/getDocument/" + numero_documento_1.value
+        )
+        .then((response) => {
+          if (response.data) {
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "valida_documento_crediseguro",
+                  value: "1",
+                },
+                {
+                  key: "id_peticion_crediseguro",
+                  value: id_peticion,
+                },
+                {
+                  key: "id_intermediario_crediseguro",
+                  value: id_intermediario,
+                },
+              ],
+            });
+          } else {
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "valida_documento_crediseguro",
+                  value: "2",
+                },
+                {
+                  key: "id_peticion_crediseguro",
+                  value: id_peticion,
+                },
+                {
+                  key: "id_intermediario_crediseguro",
+                  value: id_intermediario,
+                },
+              ],
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          this.notificationChat(data.cellphone, error);
+
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "autenticacion_crediseguro",
+                value: "0",
+              },
+              {
+                key: "id_peticion_crediseguro",
+                value: "",
+              },
+              {
+                key: "id_intermediario_crediseguro",
+                value: "",
+              },
+            ],
+          });
+        });
+      }
 
     return "procesando";
   };
@@ -300,7 +370,7 @@ class Treble {
       axios
         .post("https://crediseguro-back.click/sendDocs", formMail)
         .then((response) => {
-          console.log(response.data);
+          //console.log(response.data);
         })
         .catch((error) => {
           this.notificationChat(data.cellphone, error);
@@ -337,7 +407,7 @@ class Treble {
         ],
       });
 
-      console.log("Archivo enviado exitosamente:", result.data);
+      //console.log("Archivo enviado exitosamente:", result.data);
     }
 
     return "procesando";

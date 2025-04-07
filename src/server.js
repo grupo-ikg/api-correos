@@ -226,7 +226,6 @@ async function createToken (userIdSender) {
             "&redirect_uri=" +
             process.env.DOCUSIGN_REDIRECT_URI;
 
-          console.log(consentUrl);
           resolve(consentUrl);
           return consentUrl;
         } else {
@@ -1854,8 +1853,7 @@ app.get("/getDocument/:document", getToken, (req, res) => {
       Authorization: `Bearer ${req.token}`,
     },
   }).then(({ data }) => {
-    console.log(data);
-
+    
     if (data.IdCliente) {
       const valueEmail = data.Email;
       const valuePhone = data.Phone;
@@ -1973,8 +1971,6 @@ app.post("/updateAccountDruo", getToken, (req, res) => {
       IdCuentaDruo: data.uuid,
     };
 
-    console.log(body);
-
     axios({
       method: "POST",
       url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/AgregarCuentaBancaria",
@@ -2066,8 +2062,6 @@ app.post("/updatePaymentDruo", getToken, (req, res) => {
       Valor: data.amount,
       Code: data.code,
     };
-
-    console.log(body);
 
     axios({
       method: "POST",
@@ -3522,7 +3516,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
 });
 
 app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
-console.log(req.body);
+
   // Lógica según el evento recibido
   if (req.body.event) {
       axios({

@@ -3515,7 +3515,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   }
 });
 
-app.post("/bridge_connection_crediseguro", getTokenDev,  (req, res) => {
+app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res) => {
 
   // Lógica según el evento recibido
   if (req.body.event) {
@@ -3542,7 +3542,7 @@ app.post("/bridge_connection_crediseguro", getTokenDev,  (req, res) => {
   res.status(200).json({ message: "Webhook recibido correctamente" });
 });
 
-app.post("/bridge_connection_cavca", getTokenDevCavca , (req, res) => {
+app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
 
   console.log(req.body);
     // Lógica según el evento recibido

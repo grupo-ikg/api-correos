@@ -118,7 +118,10 @@ class Treble {
           mascara +
           valuePhone.substring(valuePhone.length - 2);
 
-        if (valuePhone == data.cellphone){
+          console.log(valuePhone);
+          console.log(data.cellphone);
+
+        //if (valuePhone == data.cellphone){
           this.update(session_id, {
             user_session_keys: [
               {
@@ -143,16 +146,16 @@ class Treble {
               },
             ],
           });
-        }else {
-          this.update(session_id, {
-            user_session_keys: [
-              {
-                key: "valida_documento_crediseguro",
-                value: "2",
-              },
-            ],
-          });          
-        }
+        // }else {
+        //   this.update(session_id, {
+        //     user_session_keys: [
+        //       {
+        //         key: "valida_documento_crediseguro",
+        //         value: "2",
+        //       },
+        //     ],
+        //   });          
+        // }
 
       } else {
         this.update(session_id, {
@@ -221,6 +224,19 @@ class Treble {
       estado_credito = {
         Estado1: "Vigente",
         Estado2: "En proceso",
+        Estado3: "",
+        Estado4: "",
+        Estado5: "",
+        Estado6: "",
+        Estado7: "",
+        Estado8: "",
+        Estado9: "",
+      };
+    } else if (status === "vig") {
+      // informacion coberturas
+      estado_credito = {
+        Estado1: "Vigente",
+        Estado2: "",
         Estado3: "",
         Estado4: "",
         Estado5: "",

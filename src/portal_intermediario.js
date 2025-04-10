@@ -22,11 +22,13 @@ class Treble {
   };
   async shortenUrl(longUrl) {
     try {
-        const response = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
-        return response.data;
+      const response = await axios.get(
+        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+      );
+      return response.data;
     } catch (error) {
-        console.error('Error acortando la URL:', error);
-        return null;
+      console.error("Error acortando la URL:", error);
+      return null;
     }
   }
 
@@ -51,7 +53,6 @@ class Treble {
   };
 
   autentication = async (data) => {
-
     this.notificationChat(data.cellphone, "inicio nuevo proceso");
 
     const session_id = data.session_id;
@@ -64,7 +65,7 @@ class Treble {
 
     await axios({
       method: "POST",
-      url: "https://dev.back-crediseguro.com/api/login",
+      url: "https://portal.back-crediseguro.com/api/login",
       headers: {
         "Content-Type": "application/json",
       },
@@ -75,6 +76,7 @@ class Treble {
       }),
     })
       .then(({ data }) => {
+        console.log(data);
         this.update(session_id, {
           user_session_keys: [
             {
@@ -89,7 +91,6 @@ class Treble {
         });
       })
       .catch((error) => {
-
         this.notificationChat(data.cellphone, error);
 
         this.update(session_id, {
@@ -108,7 +109,7 @@ class Treble {
   validate = async (data) => {
     const session_id = data.session_id;
     const id_peticion = this.generarId(12);
-    let code_validate ="";
+    let code_validate = "";
 
     const token_crediseguro = data.user_session_keys.find(
       (item) => item.key === "token_crediseguro"
@@ -118,9 +119,13 @@ class Treble {
       (item) => item.key === "numero_documento_1"
     );
 
+    const tipo_credito_1 = data.user_session_keys.find(
+      (item) => item.key === "tipo_credito_1"
+    );
+
     axios
       .get(
-        "https://dev.back-crediseguro.com/api/validate-status-quotas?noDocumento=" +
+        "https://portal.back-crediseguro.com/api/validate-status-quotas?noDocumento=" +
           numero_documento_1.value,
         {
           headers: {
@@ -130,7 +135,7 @@ class Treble {
         }
       )
       .then((response) => {
-
+        console.log(response.data);
         if (response.data) {
           if (response.data?.data.RespConsultaVrPendiente) {
             // pendiente
@@ -158,6 +163,8 @@ class Treble {
             });
             return "procesando";
           }
+
+          console.log(code_validate);
         }
       })
       .catch((error) => {
@@ -167,7 +174,7 @@ class Treble {
         this.update(session_id, {
           user_session_keys: [
             {
-              key: "autenticacion_crediseguro",
+              key: "valida_documento_crediseguro",
               value: "0",
             },
             {
@@ -184,7 +191,7 @@ class Treble {
 
     let id_intermediario = await axios
       .put(
-        "https://dev.back-crediseguro.com/api/credit-ocr",
+        "https://portal.back-crediseguro.com/api/credit-ocr",
         {
           vig_inicial: null,
           sexo: null,
@@ -207,8 +214,7 @@ class Treble {
           ciudad_nacimiento: null,
           ciudad_expedicion: null,
           cel_titular_credito: null,
-          asesor_intermediario: null,
-          apellidos: "Treble",
+          apellidos: "nuevo whatsapp",
           abono_inicial: null,
           id_sucursal: null,
           ciudad_residencia: null,
@@ -216,7 +222,7 @@ class Treble {
           es_renovacion: false,
           vehiculo0kms: false,
           credito_en_proceso: false,
-          //novedadesOCR: code_validate
+          novedadesOCR: code_validate,
         },
         {
           headers: {
@@ -226,21 +232,23 @@ class Treble {
         }
       )
       .then((response) => {
-        console.log(response.data);
         return response.data.data.IdIntermediario;
       })
       .catch((error) => {
         this.notificationChat(data.cellphone, error);
         return "0";
       });
-    
-    if (code_validate == ""){
+
+    if (code_validate == "") {
+
+      if(tipo_credito_1.value == "new_credit"){
       axios
         .get(
-          "https://dev.back-crediseguro.com/getDocument/" + numero_documento_1.value
+          "https://back-crediseguro.com/getDocument/" + numero_documento_1.value
         )
         .then((response) => {
-          if (response.data) {
+          console.log(response.data);
+          if (response.data && Object.keys(response.data).length > 0) {
             this.update(session_id, {
               user_session_keys: [
                 {
@@ -283,7 +291,7 @@ class Treble {
           this.update(session_id, {
             user_session_keys: [
               {
-                key: "autenticacion_crediseguro",
+                key: "valida_documento_crediseguro",
                 value: "0",
               },
               {
@@ -297,7 +305,25 @@ class Treble {
             ],
           });
         });
+      }else{
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "valida_documento_crediseguro",
+                  value: "2",
+                },
+                {
+                  key: "id_peticion_crediseguro",
+                  value: id_peticion,
+                },
+                {
+                  key: "id_intermediario_crediseguro",
+                  value: id_intermediario,
+                },
+              ],
+            });
       }
+    }
 
     return "procesando";
   };
@@ -368,12 +394,12 @@ class Treble {
 
       // Realizar la solicitud POST
       axios
-        .post("https://crediseguro-back.click/sendDocs", formMail)
+        .post("https://back-crediseguro.com/sendDocs", formMail)
         .then((response) => {
           //console.log(response.data);
         })
         .catch((error) => {
-          this.notificationChat(data.cellphone, error);
+          //this.notificationChat(data.cellphone, error);
 
           console.error(error);
         });
@@ -453,7 +479,6 @@ class Treble {
       (item) => item.key === "sura_formato_2"
     );
 
-
     if (!archivo_poliza) {
       this.notificationChat(data.cellphone, "No se encontró 'archivo_poliza'");
       console.error("No se encontró 'archivo_poliza' en user_session_keys.");
@@ -466,7 +491,6 @@ class Treble {
         ],
       });
     } else if (!archivo_poliza.value) {
-
       this.notificationChat(
         data.cellphone,
         "'archivo_poliza' está presente pero no contiene un valor."
@@ -483,7 +507,6 @@ class Treble {
         ],
       });
     } else {
-
       const aseguradora = data.user_session_keys.find(
         (item) => item.key === "aseguradora"
       );
@@ -558,7 +581,9 @@ class Treble {
         insurance = "ALLIANZ-0013h00000DgPwsAAF";
         type_doc = "other";
         id_aseguradora = "0013h00000DgPwsAAF";
-      } else if (aseguradora.value == "Mapfre Seguros Generales de Colombia S.A.") {
+      } else if (
+        aseguradora.value == "Mapfre Seguros Generales de Colombia S.A."
+      ) {
         insurance = "MAPFRE-0013h00000GiwbaAAB";
         type_doc = "other";
         id_aseguradora = "0013h00000GiwbaAAB";
@@ -613,12 +638,12 @@ class Treble {
 
       // Realizar la solicitud POST
       axios
-        .post("https://crediseguro-back.click/sendDocs", formMail)
+        .post("https://back-crediseguro.com/sendDocs", formMail)
         .then((response) => {
           console.log(response.data);
         })
         .catch((error) => {
-          this.notificationChat(data.cellphone,error);
+          this.notificationChat(data.cellphone, error);
           console.error(error);
         });
 
@@ -681,7 +706,10 @@ class Treble {
         ],
       });
     } else if (!archivo_anexo.value) {
-      this.notificationChat(data.cellphone, "'archivo_anexo' está presente pero no contiene un valor.");
+      this.notificationChat(
+        data.cellphone,
+        "'archivo_anexo' está presente pero no contiene un valor."
+      );
       console.error("'archivo_anexo' está presente pero no contiene un valor.");
       this.update(session_id, {
         user_session_keys: [
@@ -716,7 +744,7 @@ class Treble {
 
       // 4. Ejecutar la solicitud POST a la API
       const result = await axios.post(
-        "https://dev.back-crediseguro.com/api/upload-document",
+        "https://portal.back-crediseguro.com/api/upload-document",
         payload,
         {
           headers: {
@@ -751,7 +779,7 @@ class Treble {
     );
 
     const result = await axios.get(
-      "https://dev.back-crediseguro.com/api/credit-ocr?id=" +
+      "https://portal.back-crediseguro.com/api/credit-ocr?id=" +
         id_peticion_crediseguro.value,
       {
         headers: {
@@ -1033,7 +1061,7 @@ class Treble {
 
     axios
       .post(
-        "https://dev.back-crediseguro.com/api/credits",
+        "https://portal.back-crediseguro.com/api/credits",
         {
           Filtro: placa_certificado.value,
           EstadoConsulta: "",
@@ -1115,7 +1143,6 @@ class Treble {
   };
 
   downloadCertificate = async (data) => {
-
     const session_id = data.session_id;
     let url = "";
     let payload = "";
@@ -1145,22 +1172,22 @@ class Treble {
       (item) => item.key === "metodo_certificado"
     );
 
-    if (tipo_certificado.value == "Recibo de Pago"){
+    if (tipo_certificado.value == "Recibo de Pago") {
       name = "Recibo_de_pago";
-    }else if (tipo_certificado.value == "Estado Credito"){
+    } else if (tipo_certificado.value == "Estado Credito") {
       name = "Estado_del_credito";
-    }else if (tipo_certificado.value == "Paz y Salvo"){
+    } else if (tipo_certificado.value == "Paz y Salvo") {
       name = "paz_y_salvo";
     }
 
     if (metodo_certificado.value == "Mensaje") {
-      url = "https://dev.back-crediseguro.com/api/export-certificate";
+      url = "https://portal.back-crediseguro.com/api/export-certificate";
       payload = {
         idCredito: id_credito_certificado,
         tipoDoc: name,
       };
     } else if (metodo_certificado.value == "Correo") {
-      url = "https://dev.back-crediseguro.com/api/certificate";
+      url = "https://portal.back-crediseguro.com/api/certificate";
       payload = {
         data: [
           {
@@ -1180,14 +1207,14 @@ class Treble {
         },
       })
       .then((response) => {
-          this.update(session_id, {
-            user_session_keys: [
-              {
-                key: "certificado",
-                value: "1",
-              },
-            ],
-          });
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "certificado",
+              value: "1",
+            },
+          ],
+        });
       })
       .catch((error) => {
         this.notificationChat(data.cellphone, error);
@@ -1221,26 +1248,30 @@ class Treble {
       (item) => item.key === "id_aseguradora"
     );
 
-
     const texto =
       "whastapp/" +
       token_crediseguro.value +
       "/" +
       id_peticion_crediseguro.value +
       "/" +
-      session_id
-      +"/"+tipo_credito.value
-      +"/"+id_aseguradora.value;
-    
+      session_id +
+      "/" +
+      tipo_credito.value +
+      "/" +
+      id_aseguradora.value;
+
     const base64 = Buffer.from(texto).toString("base64");
 
-    const route = tipo_credito.value == "new_credit"?"formulario":"formulario-renovacion";
+    const route =
+      tipo_credito.value == "new_credit"
+        ? "formulario"
+        : "formulario-renovacion";
 
     const url =
-      "https://prototipoportal.crediseguro.co/admin/crear-credito/" +
+      "https://portal.crediseguro.co/admin/crear-credito/" +
       route +
       "?data=" +
-      base64;  
+      base64;
 
     const shortUrl = await this.shortenUrl(url);
 
@@ -1252,7 +1283,7 @@ class Treble {
         },
       ],
     });
-  }
+  };
 }
 
 module.exports = new Treble();

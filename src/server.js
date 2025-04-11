@@ -3537,6 +3537,7 @@ app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res)
             .json({ message: "Webhook recibido correctamente", data: data });
         })
         .catch((err) => {
+          console.error(err);
           res.status(500).json({
             error: `Ha ocurrido un problema con el servidor: ${err}`,
           });
@@ -3565,6 +3566,7 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
           res.status(200).json({ message: "Webhook recibido correctamente", data: data });
         })
         .catch((err) => {
+          console.error(err);
           res.status(500).json({
             error: `Ha ocurrido un problema con el servidor: ${err}`,
           });

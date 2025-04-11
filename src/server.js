@@ -22,6 +22,7 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const treble = require("./portal_intermediario.js");
 const trebleClient = require("./portal_cliente.js");
+const { json } = require("body-parser");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -3531,6 +3532,9 @@ app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res)
       })
         .then(({ data }) => {
           res.json(data);
+          res
+            .status(200)
+            .json({ message: "Webhook recibido correctamente", data: data });
         })
         .catch((err) => {
           res.status(500).json({
@@ -3539,7 +3543,6 @@ app.post("/bridge_connection_crediseguro", verifyToken, getTokenDev,  (req, res)
         });
   }
 
-  res.status(200).json({ message: "Webhook recibido correctamente" });
 });
 
 app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) => {
@@ -3559,7 +3562,7 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
         },
       })
         .then(({ data }) => {
-          res.json(data);
+          res.status(200).json({ message: "Webhook recibido correctamente", data: data });
         })
         .catch((err) => {
           res.status(500).json({
@@ -3567,8 +3570,7 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenDevCavca , (req, res) 
           });
         });
     }
-
-    res.status(200).json({ message: "Webhook recibido correctamente" });
+    
   }
 );
 

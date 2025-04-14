@@ -329,14 +329,117 @@ class Treble {
   };
 
   uploadDocument = async (data) => {
-    const session_id = data.session_id;
 
-    const archivo_documento = data.user_session_keys.find(
-      (item) => item.key === "archivo_documento"
-    );
+    try {
+          const session_id = data.session_id;
 
-    if (!archivo_documento) {
-      console.error("No se encontró 'archivo_documento' en user_session_keys.");
+          const archivo_documento = data.user_session_keys.find(
+            (item) => item.key === "archivo_documento"
+          );
+
+          if (!archivo_documento) {
+            console.error(
+              "No se encontró 'archivo_documento' en user_session_keys."
+            );
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "documento_cargado_crediseguro",
+                  value: "0",
+                },
+              ],
+            });
+          } else if (!archivo_documento.value) {
+            console.error(
+              "'archivo_documento' está presente pero no contiene un valor."
+            );
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "documento_cargado_crediseguro",
+                  value: "0",
+                },
+              ],
+            });
+          } else {
+            const tipo_documento_1 = data.user_session_keys.find(
+              (item) => item.key === "tipo_documento_1"
+            );
+            const id_peticion_crediseguro = data.user_session_keys.find(
+              (item) => item.key === "id_peticion_crediseguro"
+            );
+            const id_intermediario_crediseguro = data.user_session_keys.find(
+              (item) => item.key === "id_intermediario_crediseguro"
+            );
+            const formato_documento = data.user_session_keys.find(
+              (item) => item.key === "formato_documento"
+            );
+
+            const fileName = path.basename(
+              new URL(archivo_documento.value).pathname
+            );
+
+            // Descargar el archivo como stream
+            const response = await axios.get(archivo_documento.value, {
+              responseType: "stream",
+            });
+
+            // enviar correo
+            const formMail = new FormData();
+            formMail.append(
+              "message",
+              "Hola, has cedula una poliza de un cliente desde nuestro bot de intermediarios. Abre este correo para revisarlo."
+            );
+            formMail.append("sender", "desarrolladorsc@cavca.com.co");
+            formMail.append("subject", "Solicitud de Crédito Nuevo OCR - BOT");
+            formMail.append("document", id_peticion_crediseguro.value);
+            formMail.append("cc", response.data, {
+              filename: fileName,
+              contentType: "application/pdf",
+            });
+
+            // Realizar la solicitud POST
+            axios
+              .post("https://back-crediseguro.com/sendDocs", formMail)
+              .catch((error) => {
+                console.error(error);
+              });
+
+            // Crear el form-data y agregar el archivo y demás campos
+            const form = new FormData();
+            form.append("file", response.data, {
+              filename: fileName,
+              contentType: "application/pdf",
+            });
+            form.append("type_doc", formato_documento.value);
+            form.append("id", id_peticion_crediseguro.value);
+            form.append("insurance", tipo_documento_1.value);
+            form.append("id_intermediario", id_intermediario_crediseguro.value);
+
+            // Configurar la URL de envío y las cabeceras necesarias
+            const sendFileUrl =
+              "https://sendfile.crediseguro-back.click/send_file?_id=" +
+              id_peticion_crediseguro.value +
+              "&insurance=" +
+              tipo_documento_1.value;
+
+            await axios.post(sendFileUrl, form);
+
+            this.update(session_id, {
+              user_session_keys: [
+                {
+                  key: "documento_cargado_crediseguro",
+                  value: "1",
+                },
+              ],
+            });
+
+          }
+
+          return "procesando";
+    } catch (error) {
+      this.notificationChat(data.cellphone+"- error carga de documento", error);
+
       this.update(session_id, {
         user_session_keys: [
           {
@@ -345,342 +448,287 @@ class Treble {
           },
         ],
       });
-    } else if (!archivo_documento.value) {
-      console.error(
-        "'archivo_documento' está presente pero no contiene un valor."
-      );
-      this.update(session_id, {
-        user_session_keys: [
-          {
-            key: "documento_cargado_crediseguro",
-            value: "0",
-          },
-        ],
-      });
-    } else {
-      const tipo_documento_1 = data.user_session_keys.find(
-        (item) => item.key === "tipo_documento_1"
-      );
-      const id_peticion_crediseguro = data.user_session_keys.find(
-        (item) => item.key === "id_peticion_crediseguro"
-      );
-      const id_intermediario_crediseguro = data.user_session_keys.find(
-        (item) => item.key === "id_intermediario_crediseguro"
-      );
-      const formato_documento = data.user_session_keys.find(
-        (item) => item.key === "formato_documento"
-      );
 
-      const fileName = path.basename(new URL(archivo_documento.value).pathname);
-
-      // Descargar el archivo como stream
-      const response = await axios.get(archivo_documento.value, {
-        responseType: "stream",
-      });
-
-      // enviar correo
-      const formMail = new FormData();
-      formMail.append(
-        "message",
-        "Hola, has cedula una poliza de un cliente desde nuestro bot de intermediarios. Abre este correo para revisarlo."
-      );
-      formMail.append("sender", "desarrolladorsc@cavca.com.co");
-      formMail.append("subject", "Solicitud de Crédito Nuevo OCR - BOT");
-      formMail.append("document", id_peticion_crediseguro.value);
-      formMail.append("cc", response.data, {
-        filename: fileName,
-        contentType: "application/pdf",
-      });
-
-      // Realizar la solicitud POST
-      axios
-        .post("https://back-crediseguro.com/sendDocs", formMail)
-        .then((response) => {
-          //console.log(response.data);
-        })
-        .catch((error) => {
-          //this.notificationChat(data.cellphone, error);
-
-          console.error(error);
-        });
-
-      // Crear el form-data y agregar el archivo y demás campos
-      const form = new FormData();
-      form.append("file", response.data, {
-        filename: fileName,
-        contentType: "application/pdf",
-      });
-      form.append("type_doc", formato_documento.value);
-      form.append("id", id_peticion_crediseguro.value);
-      form.append("insurance", tipo_documento_1.value);
-      form.append("id_intermediario", id_intermediario_crediseguro.value);
-
-      // Configurar la URL de envío y las cabeceras necesarias
-      const sendFileUrl =
-        "https://sendfile.crediseguro-back.click/send_file?_id=" +
-        id_peticion_crediseguro.value +
-        "&insurance=" +
-        tipo_documento_1.value;
-
-      const result = await axios.post(sendFileUrl, form);
-
-      this.update(session_id, {
-        user_session_keys: [
-          {
-            key: "documento_cargado_crediseguro",
-            value: "1",
-          },
-        ],
-      });
-
-      //console.log("Archivo enviado exitosamente:", result.data);
+      return "procesando con error";
     }
 
-    return "procesando";
   };
 
   uploadPolicy = async (data) => {
-    const session_id = data.session_id;
-    let insurance = "";
-    let type_doc = "";
-    let id_aseguradora = "";
 
-    const archivo_poliza = data.user_session_keys.find(
-      (item) => item.key === "archivo_poliza"
-    );
-    const mundial_formato_1 = data.user_session_keys.find(
-      (item) => item.key === "mundial_formato_1"
-    );
-    const mundial_formato_2 = data.user_session_keys.find(
-      (item) => item.key === "mundial_formato_2"
-    );
-    const equidad_formato_1 = data.user_session_keys.find(
-      (item) => item.key === "equidad_formato_1"
-    );
-    const equidad_formato_2 = data.user_session_keys.find(
-      (item) => item.key === "equidad_formato_2"
-    );
-    const solidaria_formato_1 = data.user_session_keys.find(
-      (item) => item.key === "solidaria_formato_1"
-    );
-    const solidaria_formato_2 = data.user_session_keys.find(
-      (item) => item.key === "solidaria_formato_2"
-    );
-    const solidaria_formato_3 = data.user_session_keys.find(
-      (item) => item.key === "solidaria_formato_3"
-    );
-    const solidaria_formato_4 = data.user_session_keys.find(
-      (item) => item.key === "solidaria_formato_4"
-    );
-    const sura_formato_1 = data.user_session_keys.find(
-      (item) => item.key === "sura_formato_1"
-    );
-    const sura_formato_2 = data.user_session_keys.find(
-      (item) => item.key === "sura_formato_2"
-    );
+    try {
+      const session_id = data.session_id;
+      let insurance = "";
+      let type_doc = "";
+      let id_aseguradora = "";
 
-    if (!archivo_poliza) {
-      this.notificationChat(data.cellphone, "No se encontró 'archivo_poliza'");
-      console.error("No se encontró 'archivo_poliza' en user_session_keys.");
-      this.update(session_id, {
-        user_session_keys: [
-          {
-            key: "poliza_cargada_crediseguro",
-            value: "0",
-          },
-        ],
-      });
-    } else if (!archivo_poliza.value) {
-      this.notificationChat(
-        data.cellphone,
-        "'archivo_poliza' está presente pero no contiene un valor."
+      const archivo_poliza = data.user_session_keys.find(
+        (item) => item.key === "archivo_poliza"
       );
-      console.error(
-        "'archivo_poliza' está presente pero no contiene un valor."
+      const mundial_formato_1 = data.user_session_keys.find(
+        (item) => item.key === "mundial_formato_1"
       );
-      this.update(session_id, {
-        user_session_keys: [
-          {
-            key: "poliza_cargada_crediseguro",
-            value: "0",
-          },
-        ],
-      });
-    } else {
-      const aseguradora = data.user_session_keys.find(
-        (item) => item.key === "aseguradora"
+      const mundial_formato_2 = data.user_session_keys.find(
+        (item) => item.key === "mundial_formato_2"
+      );
+      const equidad_formato_1 = data.user_session_keys.find(
+        (item) => item.key === "equidad_formato_1"
+      );
+      const equidad_formato_2 = data.user_session_keys.find(
+        (item) => item.key === "equidad_formato_2"
+      );
+      const solidaria_formato_1 = data.user_session_keys.find(
+        (item) => item.key === "solidaria_formato_1"
+      );
+      const solidaria_formato_2 = data.user_session_keys.find(
+        (item) => item.key === "solidaria_formato_2"
+      );
+      const solidaria_formato_3 = data.user_session_keys.find(
+        (item) => item.key === "solidaria_formato_3"
+      );
+      const solidaria_formato_4 = data.user_session_keys.find(
+        (item) => item.key === "solidaria_formato_4"
+      );
+      const sura_formato_1 = data.user_session_keys.find(
+        (item) => item.key === "sura_formato_1"
+      );
+      const sura_formato_2 = data.user_session_keys.find(
+        (item) => item.key === "sura_formato_2"
       );
 
-      if (aseguradora.value == "AXA Colpatria Seguros S.A") {
-        insurance = "AXA-0013h00000GiwbUAAR";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbUAAR";
-      } else if (aseguradora.value == "Compañía Seguros Mundial S.A.") {
-        insurance = "MUNDIAL-0013h00000GiwbWAAR";
-        id_aseguradora = "0013h00000GiwbWAAR";
-        if (mundial_formato_1.value == "Si") {
-          type_doc = "formato_1";
+      if (!archivo_poliza) {
+        this.notificationChat(
+          data.cellphone,
+          "No se encontró 'archivo_poliza'"
+        );
+        console.error("No se encontró 'archivo_poliza' en user_session_keys.");
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "poliza_cargada_crediseguro",
+              value: "0",
+            },
+          ],
+        });
+      } else if (!archivo_poliza.value) {
+        this.notificationChat(
+          data.cellphone,
+          "'archivo_poliza' está presente pero no contiene un valor."
+        );
+        console.error(
+          "'archivo_poliza' está presente pero no contiene un valor."
+        );
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "poliza_cargada_crediseguro",
+              value: "0",
+            },
+          ],
+        });
+      } else {
+        const aseguradora = data.user_session_keys.find(
+          (item) => item.key === "aseguradora"
+        );
+
+        if (aseguradora.value == "AXA Colpatria Seguros S.A") {
+          insurance = "AXA-0013h00000GiwbUAAR";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbUAAR";
+        } else if (aseguradora.value == "Compañía Seguros Mundial S.A.") {
+          insurance = "MUNDIAL-0013h00000GiwbWAAR";
+          id_aseguradora = "0013h00000GiwbWAAR";
+          if (mundial_formato_1.value == "Si") {
+            type_doc = "formato_1";
+          } else if (
+            mundial_formato_1.value == "No" &&
+            mundial_formato_2.value == "Si"
+          ) {
+            type_doc = "formato_2";
+          }
+        } else if (aseguradora.value == "Seguros Bolivar S.A.") {
+          insurance = "BOLIVAR-0013h00000GiwbdAAB";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbdAAB";
+        } else if (aseguradora.value == "La Equidad Seguros Generales S.A.") {
+          insurance = "EQUIDAD-0013h00000DgV5TAAV";
+          if (equidad_formato_1.value == "Si") {
+            type_doc = "formato_1";
+          } else if (
+            equidad_formato_1.value == "No" &&
+            equidad_formato_2.value == "Si"
+          ) {
+            type_doc = "formato_2";
+          }
+          id_aseguradora = "0013h00000DgV5TAAV";
+        } else if (aseguradora.value == "SBS Seguros Colombia S.A.") {
+          insurance = "SBS";
+          type_doc = "SBS-0013h00000GiwbcAAB";
+          id_aseguradora = "0013h00000GiwbcAAB";
+        } else if (aseguradora.value == "Aseguradora Solidaria de Colombia") {
+          insurance = "SOLIDARIA-0013h00000GiwbTAAR";
+          if (solidaria_formato_1.value == "Si") {
+            type_doc = "formato_1";
+          } else if (
+            solidaria_formato_1.value == "No" &&
+            solidaria_formato_2.value == "Si"
+          ) {
+            type_doc = "formato_2";
+          } else if (
+            solidaria_formato_1.value == "No" &&
+            solidaria_formato_2.value == "No" &&
+            solidaria_formato_3.value == "Si"
+          ) {
+            type_doc = "formato_3";
+          } else if (
+            solidaria_formato_1.value == "No" &&
+            solidaria_formato_2.value == "No" &&
+            solidaria_formato_3.value == "No" &&
+            solidaria_formato_4.value == "Si"
+          ) {
+            type_doc = "formato_4";
+          }
+          id_aseguradora = "0013h00000GiwbTAAR";
+        } else if (aseguradora.value == "HDI Seguros S.A.") {
+          insurance = "HDI-0013h00000DgTUOAA3";
+          type_doc = "other";
+          id_aseguradora = "0013h00000DgTUOAA3";
+        } else if (aseguradora.value == "La Previsora S.A.") {
+          insurance = "PREVISORA-0013h00000GiwbYAAR";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbYAAR";
+        } else if (aseguradora.value == "Allianz Colombia S.A.") {
+          insurance = "ALLIANZ-0013h00000DgPwsAAF";
+          type_doc = "other";
+          id_aseguradora = "0013h00000DgPwsAAF";
         } else if (
-          mundial_formato_1.value == "No" &&
-          mundial_formato_2.value == "Si"
+          aseguradora.value == "Mapfre Seguros Generales de Colombia S.A."
         ) {
-          type_doc = "formato_2";
+          insurance = "MAPFRE-0013h00000GiwbaAAB";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbaAAB";
+        } else if (aseguradora.value == "Seguros Generales Suramericana S.A.") {
+          insurance = "SURA-0013h00000GiwbfAAB";
+          if (sura_formato_1.value == "Si") {
+            type_doc = "formato_1";
+          } else if (
+            sura_formato_1.value == "No" &&
+            sura_formato_2.value == "Si"
+          ) {
+            type_doc = "formato_2";
+          }
+          id_aseguradora = "0013h00000GiwbfAAB";
+        } else if (aseguradora.value == "Zurich Colombia Seguros S.A.") {
+          insurance = "ZURICH-0013h00000GiwbbAAB";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbbAAB";
+        } else if (aseguradora.value == "Liberty Seguros S.A.") {
+          insurance = "LIBERTY-0013h00000GiwbZAAR";
+          type_doc = "other";
+          id_aseguradora = "0013h00000GiwbZAAR";
         }
-      } else if (aseguradora.value == "Seguros Bolivar S.A.") {
-        insurance = "BOLIVAR-0013h00000GiwbdAAB";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbdAAB";
-      } else if (aseguradora.value == "La Equidad Seguros Generales S.A.") {
-        insurance = "EQUIDAD-0013h00000DgV5TAAV";
-        if (equidad_formato_1.value == "Si") {
-          type_doc = "formato_1";
-        } else if (
-          equidad_formato_1.value == "No" &&
-          equidad_formato_2.value == "Si"
-        ) {
-          type_doc = "formato_2";
-        }
-        id_aseguradora = "0013h00000DgV5TAAV";
-      } else if (aseguradora.value == "SBS Seguros Colombia S.A.") {
-        insurance = "SBS";
-        type_doc = "SBS-0013h00000GiwbcAAB";
-        id_aseguradora = "0013h00000GiwbcAAB";
-      } else if (aseguradora.value == "Aseguradora Solidaria de Colombia") {
-        insurance = "SOLIDARIA-0013h00000GiwbTAAR";
-        if (solidaria_formato_1.value == "Si") {
-          type_doc = "formato_1";
-        } else if (
-          solidaria_formato_1.value == "No" &&
-          solidaria_formato_2.value == "Si"
-        ) {
-          type_doc = "formato_2";
-        } else if (
-          solidaria_formato_1.value == "No" &&
-          solidaria_formato_2.value == "No" &&
-          solidaria_formato_3.value == "Si"
-        ) {
-          type_doc = "formato_3";
-        } else if (
-          solidaria_formato_1.value == "No" &&
-          solidaria_formato_2.value == "No" &&
-          solidaria_formato_3.value == "No" &&
-          solidaria_formato_4.value == "Si"
-        ) {
-          type_doc = "formato_4";
-        }
-        id_aseguradora = "0013h00000GiwbTAAR";
-      } else if (aseguradora.value == "HDI Seguros S.A.") {
-        insurance = "HDI-0013h00000DgTUOAA3";
-        type_doc = "other";
-        id_aseguradora = "0013h00000DgTUOAA3";
-      } else if (aseguradora.value == "La Previsora S.A.") {
-        insurance = "PREVISORA-0013h00000GiwbYAAR";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbYAAR";
-      } else if (aseguradora.value == "Allianz Colombia S.A.") {
-        insurance = "ALLIANZ-0013h00000DgPwsAAF";
-        type_doc = "other";
-        id_aseguradora = "0013h00000DgPwsAAF";
-      } else if (
-        aseguradora.value == "Mapfre Seguros Generales de Colombia S.A."
-      ) {
-        insurance = "MAPFRE-0013h00000GiwbaAAB";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbaAAB";
-      } else if (aseguradora.value == "Seguros Generales Suramericana S.A.") {
-        insurance = "SURA-0013h00000GiwbfAAB";
-        if (sura_formato_1.value == "Si") {
-          type_doc = "formato_1";
-        } else if (
-          sura_formato_1.value == "No" &&
-          sura_formato_2.value == "Si"
-        ) {
-          type_doc = "formato_2";
-        }
-        id_aseguradora = "0013h00000GiwbfAAB";
-      } else if (aseguradora.value == "Zurich Colombia Seguros S.A.") {
-        insurance = "ZURICH-0013h00000GiwbbAAB";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbbAAB";
-      } else if (aseguradora.value == "Liberty Seguros S.A.") {
-        insurance = "LIBERTY-0013h00000GiwbZAAR";
-        type_doc = "other";
-        id_aseguradora = "0013h00000GiwbZAAR";
-      }
 
-      const id_peticion_crediseguro = data.user_session_keys.find(
-        (item) => item.key === "id_peticion_crediseguro"
-      );
-      const id_intermediario_crediseguro = data.user_session_keys.find(
-        (item) => item.key === "id_intermediario_crediseguro"
-      );
+        const id_peticion_crediseguro = data.user_session_keys.find(
+          (item) => item.key === "id_peticion_crediseguro"
+        );
+        const id_intermediario_crediseguro = data.user_session_keys.find(
+          (item) => item.key === "id_intermediario_crediseguro"
+        );
 
-      const fileName = path.basename(new URL(archivo_poliza.value).pathname);
+        const fileName = path.basename(new URL(archivo_poliza.value).pathname);
 
-      // Descargar el archivo como stream
-      const response = await axios.get(archivo_poliza.value, {
-        responseType: "stream",
-      });
-
-      // enviar correo
-      const formMail = new FormData();
-      formMail.append(
-        "message",
-        "Hola, has recibido una cedula de un cliente desde nuestro bot de intermediarios. Abre este correo para revisarlo"
-      );
-      formMail.append("sender", "desarrolladorsc@cavca.com.co");
-      formMail.append("subject", "Solicitud de Crédito Nuevo OCR - BOT");
-      formMail.append("document", id_peticion_crediseguro.value);
-      formMail.append("policy", response.data, {
-        filename: fileName,
-        contentType: "application/pdf",
-      });
-
-      // Realizar la solicitud POST
-      axios
-        .post("https://back-crediseguro.com/sendDocs", formMail)
-        .then((response) => {
-          console.log(response.data);
-        })
-        .catch((error) => {
-          this.notificationChat(data.cellphone, error);
-          console.error(error);
+        // Descargar el archivo como stream
+        const response = await axios.get(archivo_poliza.value, {
+          responseType: "stream",
         });
 
-      // Crear el form-data y agregar el archivo y demás campos
-      const form = new FormData();
-      form.append("file", response.data, {
-        filename: fileName,
-        contentType: "application/pdf",
-      });
-      form.append("type_doc", type_doc);
-      form.append("id", id_peticion_crediseguro.value);
-      form.append("insurance", insurance);
-      form.append("id_intermediario", id_intermediario_crediseguro.value);
+        // enviar correo
+        const formMail = new FormData();
+        formMail.append(
+          "message",
+          "Hola, has recibido una cedula de un cliente desde nuestro bot de intermediarios. Abre este correo para revisarlo"
+        );
+        formMail.append("sender", "desarrolladorsc@cavca.com.co");
+        formMail.append("subject", "Solicitud de Crédito Nuevo OCR - BOT");
+        formMail.append("document", id_peticion_crediseguro.value);
+        formMail.append("policy", response.data, {
+          filename: fileName,
+          contentType: "application/pdf",
+        });
 
-      // Configurar la URL de envío y las cabeceras necesarias
-      const sendFileUrl =
-        "https://sendfile.crediseguro-back.click/send_file?_id=" +
-        id_peticion_crediseguro.value +
-        "&insurance=" +
-        insurance;
+        // Realizar la solicitud POST
+        axios
+          .post("https://back-crediseguro.com/sendDocs", formMail)
+          .then((response) => {
+            console.log(response.data);
+          })
+          .catch((error) => {
 
-      const result = await axios.post(sendFileUrl, form);
+            console.error(error);
+          });
+
+        // Crear el form-data y agregar el archivo y demás campos
+        const form = new FormData();
+        form.append("file", response.data, {
+          filename: fileName,
+          contentType: "application/pdf",
+        });
+        form.append("type_doc", type_doc);
+        form.append("id", id_peticion_crediseguro.value);
+        form.append("insurance", insurance);
+        form.append("id_intermediario", id_intermediario_crediseguro.value);
+
+        // Configurar la URL de envío y las cabeceras necesarias
+        const sendFileUrl =
+          "https://sendfile.crediseguro-back.click/send_file?_id=" +
+          id_peticion_crediseguro.value +
+          "&insurance=" +
+          insurance;
+
+        await axios.post(sendFileUrl, form).then((data) => {
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "poliza_cargada_crediseguro",
+                value: "1",
+              },
+              { key: "id_aseguradora", value: id_aseguradora },
+            ],
+          });
+        }).catch((error) => {
+          
+          console.error(error);
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "poliza_cargada_crediseguro",
+                value: "0",
+              }
+            ]
+          });          
+        });
+      }
+
+      return "procesando";
+    } catch (error) {
+      this.notificationChat(
+        data.cellphone + "- error carga de documento",
+        error
+      );
 
       this.update(session_id, {
         user_session_keys: [
           {
-            key: "poliza_cargada_crediseguro",
-            value: "1",
+            key: "documento_cargado_crediseguro",
+            value: "0",
           },
-          { key: "id_aseguradora", value: id_aseguradora },
         ],
       });
 
-      console.log("Archivo enviado exitosamente:", result.data);
+      return "procesando con error";
     }
 
-    return "procesando";
+    
   };
 
   uploadExhibit = async (data) => {

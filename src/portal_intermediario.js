@@ -495,6 +495,12 @@ class Treble {
       const sura_formato_2 = data.user_session_keys.find(
         (item) => item.key === "sura_formato_2"
       );
+      const sbs_formato_1 = data.user_session_keys.find(
+        (item) => item.key === "sbs_formato_1"
+      );
+      const sbs_formato_2 = data.user_session_keys.find(
+        (item) => item.key === "sbs_formato_2"
+      );
 
       if (!archivo_poliza) {
         this.notificationChat(
@@ -562,9 +568,18 @@ class Treble {
           }
           id_aseguradora = "0013h00000DgV5TAAV";
         } else if (aseguradora.value == "SBS Seguros Colombia S.A.") {
-          insurance = "SBS";
-          type_doc = "SBS-0013h00000GiwbcAAB";
+          
+          insurance = "SBS-0013h00000GiwbcAAB";
           id_aseguradora = "0013h00000GiwbcAAB";
+
+          if (sbs_formato_1.value == "Si") {
+            type_doc = "otro";
+          } else if (
+            sbs_formato_1.value == "No" &&
+            sbs_formato_2.value == "Si"
+          ) {
+            type_doc = "factura";
+          }          
         } else if (aseguradora.value == "Aseguradora Solidaria de Colombia") {
           insurance = "SOLIDARIA-0013h00000GiwbTAAR";
           if (solidaria_formato_1.value == "Si") {

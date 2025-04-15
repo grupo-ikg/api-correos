@@ -209,7 +209,7 @@ class Treble {
     } else if (status === "ct") {
       // certificado tributario
       estado_credito = {
-        Estado1: "Paz y Salvo",
+        Estado1: "Vigente",
         Estado2: "Devuelto",
         Estado3: "En proceso",
         Estado4: "Cancelado",
@@ -217,7 +217,7 @@ class Treble {
         Estado6: "Proceso de Cancelacion Avisado",
         Estado7: "En proceso de cancelacion",
         Estado8: "Por desembolsar",
-        Estado9: "Vigente",
+        Estado9: "Paz y Salvo",
       };
     } else if (status === "ic") {
       // informacion coberturas
@@ -262,31 +262,49 @@ class Treble {
         }
       )
       .then((respuesta) => {
-        const salida = respuesta.data.creditosEncontrados
-          .map((cred) => {
-            return `*• No. de Crédito: ${cred.NombreCredito}*
-            *•	Aseguradora:* ${cred.aseguradora}
-            *•	Línea:* ${cred.Linea}
-            *•	Vigencias:* ${cred.vigenciaInicial} - ${cred.vigenciaFinal}
-            *•	Placa:* ${cred.Placa}
-            *•	Estado del crédito:* ${cred.EstadoCredito}`;
-          })
-          .join("\n\n");
 
-        this.update(session_id, {
-          user_session_keys: [
-            { key: "credito_crediseguro", value: "1" },
-            { key: "creditos", value: salida },
-            ...respuesta.data.creditosEncontrados.map((cred) => ({
-              key: cred.NombreCredito,
-              value: cred.IdCredito,
-            })),
-            ...respuesta.data.creditosEncontrados.map((cred) => ({
-              key: "VALOR-" + cred.NombreCredito,
-              value: "'" + cred.ValorFinanciado + "'",
-            })),
-          ],
-        });
+        if (
+          !respuesta.data.creditosEncontrados ||
+          respuesta.data.creditosEncontrados.length === 0
+        ) {
+          console.log("No se encontraron créditos");
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "credito_crediseguro",
+                value: "0",
+              },
+            ],
+          });
+        } else {
+
+          console.log("se encontraron créditos");
+          const salida = respuesta.data.creditosEncontrados
+            .map((cred) => {
+              return `*• No. de Crédito: ${cred.NombreCredito}*
+              *•	Aseguradora:* ${cred.aseguradora}
+              *•	Línea:* ${cred.Linea}
+              *•	Vigencias:* ${cred.vigenciaInicial} - ${cred.vigenciaFinal}
+              *•	Placa:* ${cred.Placa}
+              *•	Estado del crédito:* ${cred.EstadoCredito}`;
+            })
+            .join("\n\n");
+
+          this.update(session_id, {
+            user_session_keys: [
+              { key: "credito_crediseguro", value: "1" },
+              { key: "creditos", value: salida },
+              ...respuesta.data.creditosEncontrados.map((cred) => ({
+                key: cred.NombreCredito,
+                value: cred.IdCredito,
+              })),
+              ...respuesta.data.creditosEncontrados.map((cred) => ({
+                key: "VALOR-" + cred.NombreCredito,
+                value: "'" + cred.ValorFinanciado + "'",
+              })),
+            ],
+          });          
+        }          
       })
       .catch((error) => {
         console.log("error");

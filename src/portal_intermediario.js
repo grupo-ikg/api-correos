@@ -91,7 +91,7 @@ class Treble {
         });
       })
       .catch((error) => {
-        this.notificationChat(data.cellphone, error);
+        console.log(error)
 
         this.update(session_id, {
           user_session_keys: [
@@ -169,7 +169,7 @@ class Treble {
       })
       .catch((error) => {
         console.log(error);
-        this.notificationChat(data.cellphone, error);
+        console.log(error)
 
         this.update(session_id, {
           user_session_keys: [
@@ -235,7 +235,7 @@ class Treble {
         return response.data.data.IdIntermediario;
       })
       .catch((error) => {
-        this.notificationChat(data.cellphone, error);
+        console.log(error)
         return "0";
       });
 
@@ -286,7 +286,7 @@ class Treble {
         })
         .catch((error) => {
           console.log(error);
-          this.notificationChat(data.cellphone, error);
+          console.log(error)
 
           this.update(session_id, {
             user_session_keys: [
@@ -329,10 +329,10 @@ class Treble {
   };
 
   uploadDocument = async (data) => {
-
+    const session_id = data.session_id;
+    
     try {
-          const session_id = data.session_id;
-
+          
           const archivo_documento = data.user_session_keys.find(
             (item) => item.key === "archivo_documento"
           );
@@ -1192,7 +1192,7 @@ class Treble {
         }
       })
       .catch((error) => {
-        this.notificationChat(data.cellphone, error);
+        console.log(error)
         this.update(session_id, {
           user_session_keys: [
             {
@@ -1280,7 +1280,7 @@ class Treble {
         });
       })
       .catch((error) => {
-        this.notificationChat(data.cellphone, error);
+        console.log(error)
         this.update(session_id, {
           user_session_keys: [
             {

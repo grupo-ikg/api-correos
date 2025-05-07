@@ -650,6 +650,8 @@ app.post("/getLocation", getToken, (req, res) => {
       quiereCiudad: get_cities,
       IdParafiltrar: id_department,
     };
+
+    console.log(body);
     axios({
       method: "POST",
       url: "https://crediseguro.my.salesforce.com/services/apexrest/V1/EnvioCiudad",
@@ -3863,6 +3865,65 @@ app.post("/bridge_connection_cavca", verifyToken, getTokenCavca , (req, res) => 
   }
 );
 
+app.post("/bridge_connection_crediseguro_dev",verifyToken,getTokenDev,(req, res) => {
+    // Lógica según el evento recibido
+    if (req.body.event) {
+      axios({
+        method: "POST",
+        url:
+          "https://crediseguro--desarrollo.my.salesforce.com/services/apexrest/V1/" +
+          req.body.event,
+        data: JSON.stringify(req.body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${req.token}`,
+        },
+      })
+        .then(({ data }) => {
+          res.json(data);
+          res
+            .status(200)
+            .json({ message: "Webhook recibido correctamente", data: data });
+        })
+        .catch((err) => {
+          console.error(err);
+          res.status(500).json({
+            error: `Ha ocurrido un problema con el servidor: ${err}`,
+          });
+        });
+    }
+  }
+);
+
+app.post("/bridge_connection_cavca_dev", verifyToken, getTokenDevCavca, (req, res) => {
+  console.log(req.body);
+  // Lógica según el evento recibido
+  if (req.body.event) {
+    axios({
+      method: "POST",
+      url:
+        "https://cavca--preproducc.my.salesforce.com/services/apexrest/V1/" +
+        req.body.event,
+      data: JSON.stringify(req.body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res
+          .status(200)
+          .json({ message: "Webhook recibido correctamente", data: data });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  }
+});
+
 app.post("/treble", (req, res) => {
   console.log(req.query.event);
   console.log(req.body);
@@ -3930,6 +3991,9 @@ app.post("/treble_client", getToken, (req, res) => {
       break;
     case "createPac":
       res.status(200).json(trebleClient.createPac(req.token, req.body));
+      break;
+    case "survey":
+      res.status(200).json(trebleClient.survey(req.token, req.body));
       break;
     default:
       res.status(400).json({ error: "Evento no reconocido" });

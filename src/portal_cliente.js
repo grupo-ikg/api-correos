@@ -118,34 +118,31 @@ class Treble {
           mascara +
           valuePhone.substring(valuePhone.length - 2);
 
-          console.log(valuePhone);
-          console.log(data.cellphone);
-
         //if (valuePhone == data.cellphone){
-          this.update(session_id, {
-            user_session_keys: [
-              {
-                key: "valida_documento_crediseguro",
-                value: "1",
-              },
-              {
-                key: "id_cliente",
-                value: data.IdCliente,
-              },
-              {
-                key: "nombre_cliente",
-                value: data.Nombre,
-              },
-              {
-                key: "telefono_cliente",
-                value: phone_masked,
-              },
-              {
-                key: "correo_cliente",
-                value: email_masked,
-              },
-            ],
-          });
+        this.update(session_id, {
+          user_session_keys: [
+            {
+              key: "valida_documento_crediseguro",
+              value: "1",
+            },
+            {
+              key: "id_cliente",
+              value: data.IdCliente,
+            },
+            {
+              key: "nombre_cliente",
+              value: data.Nombre,
+            },
+            {
+              key: "telefono_cliente",
+              value: phone_masked,
+            },
+            {
+              key: "correo_cliente",
+              value: email_masked,
+            },
+          ],
+        });
         // }else {
         //   this.update(session_id, {
         //     user_session_keys: [
@@ -154,9 +151,8 @@ class Treble {
         //         value: "2",
         //       },
         //     ],
-        //   });          
+        //   });
         // }
-
       } else {
         this.update(session_id, {
           user_session_keys: [
@@ -200,10 +196,10 @@ class Treble {
         Estado2: "Devuelto",
         Estado3: "En proceso",
         Estado4: "Cancelado",
-        Estado5: "Anulado",
-        Estado6: "Proceso de Cancelacion Avisado",
-        Estado7: "En proceso de cancelacion",
-        Estado8: "Por desembolsar",
+        Estado5: "Proceso de Cancelacion Avisado",
+        Estado6: "En proceso de cancelacion",
+        Estado7: "Por desembolsar",
+        Estado8: "",
         Estado9: "",
       };
     } else if (status === "ct") {
@@ -213,11 +209,11 @@ class Treble {
         Estado2: "Devuelto",
         Estado3: "En proceso",
         Estado4: "Cancelado",
-        Estado5: "Anulado",
-        Estado6: "Proceso de Cancelacion Avisado",
-        Estado7: "En proceso de cancelacion",
-        Estado8: "Por desembolsar",
-        Estado9: "Paz y Salvo",
+        Estado5: "Proceso de Cancelacion Avisado",
+        Estado6: "En proceso de cancelacion",
+        Estado7: "Por desembolsar",
+        Estado8: "Paz y Salvo",
+        Estado9: "",
       };
     } else if (status === "ic") {
       // informacion coberturas
@@ -262,12 +258,11 @@ class Treble {
         }
       )
       .then((respuesta) => {
-
         if (
           !respuesta.data.creditosEncontrados ||
           respuesta.data.creditosEncontrados.length === 0
         ) {
-          console.log("No se encontraron créditos");
+
           this.update(session_id, {
             user_session_keys: [
               {
@@ -278,7 +273,6 @@ class Treble {
           });
         } else {
 
-          console.log("se encontraron créditos");
           const salida = respuesta.data.creditosEncontrados
             .map((cred) => {
               return `*• No. de Crédito: ${cred.NombreCredito}*
@@ -303,8 +297,8 @@ class Treble {
                 value: "'" + cred.ValorFinanciado + "'",
               })),
             ],
-          });          
-        }          
+          });
+        }
       })
       .catch((error) => {
         console.log("error");
@@ -429,16 +423,14 @@ class Treble {
           headers: {
             "Content-Type": "application/json",
             Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmFhYThkY2EzOTdlYzMwMzVhOTg1Y2IiLCJ1c2VySWQiOiIwMDEzaDAwMDAwRGdWNVNBQVYiLCJkb2N1bWVudCI6Ijk5OTAzODYwOCIsIm5hbWUiOiJBZG1pbmlzdHJhZG9yIiwiZW1haWwiOiJjYXJ0ZXJhQGNhdmNhLmNvbS5jbyIsInBob25lIjoiMzIwNDc3NDEzOCIsInByb2ZpbGUiOiJBZG1pbiIsImlhdCI6MTc0MzQzNDkzMCwiZXhwIjoxNzQ2MDI2OTMwfQ.l_3ZHqluWYovAHFbZHGQAn9PexWME9l-1GjQ-B2t6d4",
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmFhYThkY2EzOTdlYzMwMzVhOTg1Y2IiLCJ1c2VySWQiOiIwMDEzaDAwMDAwRGdWNVNBQVYiLCJkb2N1bWVudCI6Ijk5OTAzODYwOCIsIm5hbWUiOiJBZG1pbmlzdHJhZG9yIiwiZW1haWwiOiJjYXJ0ZXJhQGNhdmNhLmNvbS5jbyIsInBob25lIjoiMzIwNDc3NDEzOCIsInByb2ZpbGUiOiJBZG1pbiIsImlhdCI6MTc0NjIxNzY1MCwiZXhwIjoxNzQ4ODA5NjUwfQ.uYt9jl6k3MY_DYKRPabZdLgvnwrHR76FUqR9J9MbbzI",
           },
           data: JSON.stringify(payload),
           responseType: "arraybuffer", // Esto hace que Axios devuelva un ArrayBuffer
         };
 
-        console.log(config);
-
         try {
-          const nameFile = tipo + ": CRED-" + numero_credito.value;
+          const nameFile = tipo + "_CRED_" + numero_credito.value;
           const response = await axios.request(config);
 
           const fileUrl = await this.subirPdfAS3(response.data, nameFile);
@@ -664,6 +656,80 @@ class Treble {
         ],
       });
     }
+    return "procesando";
+  };
+
+  survey = async (token,data) => {
+    const session_id = data.session_id;
+
+    const id_cliente = data.user_session_keys.find(
+      (item) => item.key === "id_cliente"
+    );
+
+    const encuesta_bot = data.user_session_keys.find(
+      (item) => item.key === "encuesta_bot"
+    );
+
+    const payload = {
+      IdIntermediario: id_cliente.value,
+      Encuesta: [
+        {
+          Pregunta: "¿La información fue útil? - Bot",
+          Respuesta: encuesta_bot,
+        },
+      ],
+    };
+
+    console.log(payload);
+
+    try {
+      axios
+        .post(
+          "https://crediseguro.my.salesforce.com/services/apexrest/V1/Encuesta/",
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((respuesta) => {
+          console.log(respuesta);
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "survey",
+                value: "1",
+              },
+            ],
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "survey",
+                value: "0",
+              },
+            ],
+          });
+        });
+    } catch (error) {
+      this.notificationChat(data.cellphone, error);
+
+      this.update(session_id, {
+        user_session_keys: [
+          {
+            key: "survey",
+            value: "0",
+          },
+        ],
+      });
+    }
+
     return "procesando";
   };
 }

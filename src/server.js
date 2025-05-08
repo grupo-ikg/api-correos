@@ -3854,7 +3854,7 @@ app.post("/updateOppCavcaDev", getTokenDevCavca, verifyToken, (req, res) => {
 
     axios({
       method: "POST",
-      url: "https://cavca--preproducc.my.salesforce.com/services/apexrest/V1/UpdateOpp",
+      url: "https://cavca--preproducc.sandbox.my.salesforce.com/services/apexrest/V1/UpdateOpp",
       data: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
@@ -3974,7 +3974,7 @@ app.post("/bridge_connection_cavca_dev", verifyToken, getTokenDevCavca, (req, re
     axios({
       method: "POST",
       url:
-        "https://cavca--preproducc.my.salesforce.com/services/apexrest/V1/" +
+        "https://cavca--preproducc.sandbox.my.salesforce.com/services/apexrest/V1/" +
         req.body.event,
       data: JSON.stringify(req.body),
       headers: {

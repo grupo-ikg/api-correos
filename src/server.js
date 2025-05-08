@@ -2150,15 +2150,12 @@ app.get("/getDocument/:document", getToken, (req, res) => {
       const chars = 5; // Cantidad de caracters visibles
 
       const email_masked = valueEmail.replace(
-        /[a-z0-9\-_.]+@/gi,
-        (c) =>
-          c.substr(0, chars) +
-          c
-            .split("")
-            .slice(chars, -1)
-            .map((v) => "*")
-            .join("") +
-          "@"
+        /([a-z0-9._%-]+)@/gi,
+        (match, username) => {
+          const visible = username.slice(0, chars);
+          const masked = "*".repeat(Math.max(0, username.length - chars));
+          return visible + masked + "@";
+        }
       );
 
       const mascaraLongitud = valuePhone.length - 4; // Dejaremos visibles los 2 extremos y ocultaremos el centro

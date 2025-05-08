@@ -1,6 +1,6 @@
 services:
   app:
-    image: jeissonlopez2003/backend-crediseguro:v65
+    image: jeissonlopez2003/backend-crediseguro:v66
     ports:
       - 4000:4000
     restart: always

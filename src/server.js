@@ -3805,6 +3805,78 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
   }
 });
 
+app.post("/updateOppCavcaDev", getTokenDevCavca, verifyToken, (req, res) => {
+  const { data } = req.body;
+
+  try {
+    const body = {
+      cedula: data.cedula,
+      placa: data.placa,
+      ListaDatos: [
+        {
+          IdCotizacion: data.IdCotizacion,
+          Bolivar_Premium: data.Bolivar_Premium,
+          HDI_Livianos_Full: data.HDI_Livianos_Full,
+          Bolivar_Estandar: data.Bolivar_Estandar,
+          AXAPlusAsis_Plus: data.AXAPlusAsis_Plus,
+          Bolivar_Clasico: data.Bolivar_Clasico,
+          AXAPlusAsis_VIP: data.AXAPlusAsis_VIP,
+          SBS_OtrasCiudades: data.SBS_OtrasCiudades,
+          Mapfre_ParaLaMujer: data.Mapfre_ParaLaMujer,
+          SBS_Full: data.SBS_Full,
+          Mapfre_SuperTrebol: data.Mapfre_SuperTrebol,
+          SBS_Estandar: data.SBS_Estandar,
+          Mapfre_TrebolBasico: data.Mapfre_TrebolBasico,
+          Equidad_AutoPlusFull_Elite: data.Equidad_AutoPlusFull_Elite,
+          Liberty_Premium_ConVidrios: data.Liberty_Premium_ConVidrios,
+          Sura_Global: data.Sura_Global,
+          Liberty_Premium: data.Liberty_Premium,
+          Sura_Clasico: data.Sura_Clasico,
+          Liberty_Integral: data.Liberty_Integral,
+          Zurich_Full: data.Zurich_Full,
+          Liberty_Silver2_VehiculoSustituto:
+            data.Liberty_Silver2_VehiculoSustituto,
+          Zurich_Basico: data.Zurich_Basico,
+          Liberty_Silver1_VehiculoSustituto:
+            data.Liberty_Silver1_VehiculoSustituto,
+          Solidaria_Elite: data.Solidaria_Elite,
+          Liberty_Basico_PT: data.Liberty_Basico_PT,
+          Solidaria_Premium: data.Solidaria_Premium,
+          Liberty_Bronze1: data.Liberty_Bronze1,
+          Solidaria_Plus: data.Solidaria_Plus,
+          Previsora_Full: data.Previsora_Full,
+          Previsora_Estandar: data.Previsora_Estandar,
+          Seg_Estado_Inv_Cavca: data.Seg_Estado_Inv_Cavca,
+          AXA_Vip_asis_esencial: data.AXA_Vip_asis_esencial,
+        },
+      ],
+    };
+
+    axios({
+      method: "POST",
+      url: "https://cavca--preproducc.my.salesforce.com/services/apexrest/V1/UpdateOpp",
+      data: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    })
+      .then(({ data }) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor a: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor b: ${error}`,
+    });
+  }
+});
+
 app.post("/bridge_connection_crediseguro", verifyToken, getToken,  (req, res) => {
 
   // Lógica según el evento recibido

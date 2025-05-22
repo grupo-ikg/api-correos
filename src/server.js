@@ -3809,42 +3809,200 @@ app.post("/updateOppCavcaDev", getTokenDevCavca, verifyToken, (req, res) => {
     const body = {
       cedula: data.cedula,
       placa: data.placa,
-      ListaDatos: [
+      Bolivar_Premium: [
         {
-          IdCotizacion: data.IdCotizacion,
-          Bolivar_Premium: data.Bolivar_Premium,
-          HDI_Livianos_Full: data.HDI_Livianos_Full,
-          Bolivar_Estandar: data.Bolivar_Estandar,
-          AXAPlusAsis_Plus: data.AXAPlusAsis_Plus,
-          Bolivar_Clasico: data.Bolivar_Clasico,
-          AXAPlusAsis_VIP: data.AXAPlusAsis_VIP,
-          SBS_OtrasCiudades: data.SBS_OtrasCiudades,
-          Mapfre_ParaLaMujer: data.Mapfre_ParaLaMujer,
-          SBS_Full: data.SBS_Full,
-          Mapfre_SuperTrebol: data.Mapfre_SuperTrebol,
-          SBS_Estandar: data.SBS_Estandar,
-          Mapfre_TrebolBasico: data.Mapfre_TrebolBasico,
-          Equidad_AutoPlusFull_Elite: data.Equidad_AutoPlusFull_Elite,
-          Liberty_Premium_ConVidrios: data.Liberty_Premium_ConVidrios,
-          Sura_Global: data.Sura_Global,
-          Liberty_Premium: data.Liberty_Premium,
-          Sura_Clasico: data.Sura_Clasico,
-          Liberty_Integral: data.Liberty_Integral,
-          Zurich_Full: data.Zurich_Full,
-          Liberty_Silver2_VehiculoSustituto:
-            data.Liberty_Silver2_VehiculoSustituto,
-          Zurich_Basico: data.Zurich_Basico,
-          Liberty_Silver1_VehiculoSustituto:
-            data.Liberty_Silver1_VehiculoSustituto,
-          Solidaria_Elite: data.Solidaria_Elite,
-          Liberty_Basico_PT: data.Liberty_Basico_PT,
-          Solidaria_Premium: data.Solidaria_Premium,
-          Liberty_Bronze1: data.Liberty_Bronze1,
-          Solidaria_Plus: data.Solidaria_Plus,
-          Previsora_Full: data.Previsora_Full,
-          Previsora_Estandar: data.Previsora_Estandar,
-          Seg_Estado_Inv_Cavca: data.Seg_Estado_Inv_Cavca,
-          AXA_Vip_asis_esencial: data.AXA_Vip_asis_esencial,
+          Bolivar_Premium_nCotizacion: data.Bolivar_Premium_nCotizacion,
+          Bolivar_Premium_value: data.Bolivar_Premium_value,
+        },
+      ],
+      HDI_Livianos_Full: [
+        {
+          HDI_Livianos_Full_nCotizacion: data.HDI_Livianos_Full_nCotizacion,
+          HDI_Livianos_Full_value: data.HDI_Livianos_Full_value,
+        },
+      ],
+      AXAPlusAsis_Plus: [
+        {
+          AXAPlusAsis_Plus_nCotizacion: data.AXAPlusAsis_Plus_nCotizacion,
+          AXAPlusAsis_Plus_value: data.AXAPlusAsis_Plus_value,
+        },
+      ],
+      Bolivar_Estandar: [
+        {
+          Bolivar_Estandar_nCotizacion: data.Bolivar_Estandar_nCotizacion,
+          Bolivar_Estandar_value: data.Bolivar_Estandar_value,
+        },
+      ],
+      AXAPlusAsis_VIP: [
+        {
+          AXAPlusAsis_VIP_nCotizacion: data.AXAPlusAsis_VIP_nCotizacion,
+          AXAPlusAsis_VIP_value: data.AXAPlusAsis_VIP_value,
+        },
+      ],
+      Bolivar_Clasico: [
+        {
+          Bolivar_Clasico_nCotizacion: data.Bolivar_Clasico_nCotizacion,
+          Bolivar_Clasico_value: data.Bolivar_Clasico_value,
+        },
+      ],
+      AXA_Vip_asis_esencial: [
+        {
+          AXA_Vip_asis_esencial_nCotizacion:
+            data.AXA_Vip_asis_esencial_nCotizacion,
+          AXA_Vip_asis_esencial_value: data.AXA_Vip_asis_esencial_value,
+        },
+      ],
+      SBS_OtrasCiudades: [
+        {
+          SBS_OtrasCiudades_nCotizacion: data.SBS_OtrasCiudades_nCotizacion,
+          SBS_OtrasCiudades_value: data.SBS_OtrasCiudades_value,
+        },
+      ],
+      Mapfre_ParaLaMujer: [
+        {
+          Mapfre_ParaLaMujer_nCotizacion: data.Mapfre_ParaLaMujer_nCotizacion,
+          Mapfre_ParaLaMujer_value: data.Mapfre_ParaLaMujer_value,
+        },
+      ],
+      Mapfre_SuperTrebol: [
+        {
+          Mapfre_SuperTrebol_nCotizacion: data.Mapfre_SuperTrebol_nCotizacion,
+          Mapfre_SuperTrebol_value: data.Mapfre_SuperTrebol_value,
+        },
+      ],
+      SBS_Full: [
+        {
+          SBS_Full_nCotizacion: data.SBS_Full_nCotizacion,
+          SBS_Full_value: data.SBS_Full_value,
+        },
+      ],
+      SBS_Estandar: [
+        {
+          SBS_Estandar_nCotizacion: data.SBS_Estandar_nCotizacion,
+          SBS_Estandar_value: data.SBS_Estandar_value,
+        },
+      ],
+      Mapfre_TrebolBasico: [
+        {
+          Mapfre_TrebolBasico_nCotizacion: data.Mapfre_TrebolBasico_nCotizacion,
+          Mapfre_TrebolBasico_value: data.Mapfre_TrebolBasico_value,
+        },
+      ],
+      Equidad_AutoPlusFull_Elite: [
+        {
+          Equidad_AutoPlusFull_Elite_nCotizacion:
+            data.Equidad_AutoPlusFull_Elite_nCotizacion,
+          Equidad_AutoPlusFull_Elite_value:
+            data.Equidad_AutoPlusFull_Elite_value,
+        },
+      ],
+      Liberty_Premium_ConVidrios: [
+        {
+          Liberty_Premium_ConVidrios_nCotizacion:
+            data.Liberty_Premium_ConVidrios_nCotizacion,
+          Liberty_Premium_ConVidrios_value:
+            data.Liberty_Premium_ConVidrios_value,
+        },
+      ],
+      Sura_Global: [
+        {
+          Sura_Global_nCotizacion: data.Sura_Global_nCotizacion,
+          Sura_Global_value: data.Sura_Global_value,
+        },
+      ],
+      Liberty_Premium: [
+        {
+          Liberty_Premium_nCotizacion: data.Liberty_Premium_nCotizacion,
+          Liberty_Premium_value: data.Liberty_Premium_value,
+        },
+      ],
+      Sura_Clasico: [
+        {
+          Sura_Clasico_nCotizacion: data.Sura_Clasico_nCotizacion,
+          Sura_Clasico_value: data.Sura_Clasico_value,
+        },
+      ],
+      Liberty_Integral: [
+        {
+          Liberty_Integral_nCotizacion: data.Liberty_Integral_nCotizacion,
+          Liberty_Integral_value: data.Liberty_Integral_value,
+        },
+      ],
+      Zurich_Full: [
+        {
+          Zurich_Full_nCotizacion: data.Zurich_Full_nCotizacion,
+          Zurich_Full_value: data.Zurich_Full_value,
+        },
+      ],
+      Liberty_Silver2_VehiculoSustituto: [
+        {
+          Liberty_Silver2_VehiculoSustituto_nCotizacion:
+            data.Liberty_Silver2_VehiculoSustituto_nCotizacion,
+          Liberty_Silver2_VehiculoSustituto_value:
+            data.Liberty_Silver2_VehiculoSustituto_value,
+        },
+      ],
+      Zurich_Basico: [
+        {
+          Zurich_Basico_nCotizacion: data.Zurich_Basico_nCotizacion,
+          Zurich_Basico_value: data.Zurich_Basico_value,
+        },
+      ],
+      Liberty_Silver1_VehiculoSustituto: [
+        {
+          Liberty_Silver1_VehiculoSustituto_nCotizacion:
+            data.Liberty_Silver1_VehiculoSustituto_nCotizacion,
+          Liberty_Silver1_VehiculoSustituto_value:
+            data.Liberty_Silver1_VehiculoSustituto_value,
+        },
+      ],
+      Solidaria_Elite: [
+        {
+          Solidaria_Elite_nCotizacion: data.Solidaria_Elite_nCotizacion,
+          Solidaria_Elite_value: data.Solidaria_Elite_value,
+        },
+      ],
+      Liberty_Basico_PT: [
+        {
+          Liberty_Basico_PT_nCotizacion: data.Liberty_Basico_PT_nCotizacion,
+          Liberty_Basico_PT_value: data.Liberty_Basico_PT_value,
+        },
+      ],
+      Solidaria_Premium: [
+        {
+          Solidaria_Premium_nCotizacion: data.Solidaria_Premium_nCotizacion,
+          Solidaria_Premium_value: data.Solidaria_Premium_value,
+        },
+      ],
+      Liberty_Bronze1: [
+        {
+          Liberty_Bronze1_nCotizacion: data.Liberty_Bronze1_nCotizacion,
+          Liberty_Bronze1_value: data.Liberty_Bronze1_value,
+        },
+      ],
+      Solidaria_Plus: [
+        {
+          Solidaria_Plus_nCotizacion: data.Solidaria_Plus_nCotizacion,
+          Solidaria_Plus_value: data.Solidaria_Plus_value,
+        },
+      ],
+      Previsora_Full: [
+        {
+          Previsora_Full_nCotizacion: data.Previsora_Full_nCotizacion,
+          Previsora_Full_value: data.Previsora_Full_value,
+        },
+      ],
+      Previsora_Estandar: [
+        {
+          Previsora_Estandar_nCotizacion: data.Previsora_Estandar_nCotizacion,
+          Previsora_Estandar_value: data.Previsora_Estandar_value,
+        },
+      ],
+      Seg_Estado_Inv_Cavca: [
+        {
+          Seg_Estado_Inv_Cavca_nCotizacion:
+            data.Seg_Estado_Inv_Cavca_nCotizacion,
+          Seg_Estado_Inv_Cavca_value: data.Seg_Estado_Inv_Cavca_value,
         },
       ],
     };

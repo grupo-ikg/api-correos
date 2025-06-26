@@ -118,41 +118,41 @@ class Treble {
           mascara +
           valuePhone.substring(valuePhone.length - 2);
 
-        //if (valuePhone == data.cellphone){
-        this.update(session_id, {
-          user_session_keys: [
-            {
-              key: "valida_documento_crediseguro",
-              value: "1",
-            },
-            {
-              key: "id_cliente",
-              value: data.IdCliente,
-            },
-            {
-              key: "nombre_cliente",
-              value: data.Nombre,
-            },
-            {
-              key: "telefono_cliente",
-              value: phone_masked,
-            },
-            {
-              key: "correo_cliente",
-              value: email_masked,
-            },
-          ],
-        });
-        // }else {
-        //   this.update(session_id, {
-        //     user_session_keys: [
-        //       {
-        //         key: "valida_documento_crediseguro",
-        //         value: "2",
-        //       },
-        //     ],
-        //   });
-        // }
+        if (valuePhone == data.cellphone){
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "valida_documento_crediseguro",
+                value: "1",
+              },
+              {
+                key: "id_cliente",
+                value: data.IdCliente,
+              },
+              {
+                key: "nombre_cliente",
+                value: data.Nombre,
+              },
+              {
+                key: "telefono_cliente",
+                value: phone_masked,
+              },
+              {
+                key: "correo_cliente",
+                value: email_masked,
+              },
+            ],
+          });
+        }else {
+          this.update(session_id, {
+            user_session_keys: [
+              {
+                key: "valida_documento_crediseguro",
+                value: "2",
+              },
+            ],
+          });
+        }
       } else {
         this.update(session_id, {
           user_session_keys: [
@@ -416,6 +416,20 @@ class Treble {
           tipoDoc: tipo, //"Estado_del_credito",
         };
 
+
+        const login = await axios({
+          method: "POST",
+          url: "https://portal.back-crediseguro.com/api/login",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify({
+            document: "999038608",
+            password: "OTAwMzQ0MzQ1",
+            type: 0,
+          }),
+        });       
+
         const config = {
           method: "post",
           maxBodyLength: Infinity,
@@ -423,7 +437,7 @@ class Treble {
           headers: {
             "Content-Type": "application/json",
             Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmFhYThkY2EzOTdlYzMwMzVhOTg1Y2IiLCJ1c2VySWQiOiIwMDEzaDAwMDAwRGdWNVNBQVYiLCJkb2N1bWVudCI6Ijk5OTAzODYwOCIsIm5hbWUiOiJBZG1pbmlzdHJhZG9yIiwiZW1haWwiOiJjYXJ0ZXJhQGNhdmNhLmNvbS5jbyIsInBob25lIjoiMzIwNDc3NDEzOCIsInByb2ZpbGUiOiJBZG1pbiIsImlhdCI6MTc0NjIxNzY1MCwiZXhwIjoxNzQ4ODA5NjUwfQ.uYt9jl6k3MY_DYKRPabZdLgvnwrHR76FUqR9J9MbbzI",
+              "Bearer "+ login.data.data,
           },
           data: JSON.stringify(payload),
           responseType: "arraybuffer", // Esto hace que Axios devuelva un ArrayBuffer
@@ -679,8 +693,6 @@ class Treble {
         },
       ],
     };
-
-    console.log(payload);
 
     try {
       axios

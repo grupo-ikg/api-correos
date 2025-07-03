@@ -118,7 +118,7 @@ class Treble {
           mascara +
           valuePhone.substring(valuePhone.length - 2);
 
-        if (valuePhone == data.cellphone){
+        //if (valuePhone == data.cellphone){
           this.update(session_id, {
             user_session_keys: [
               {
@@ -143,7 +143,7 @@ class Treble {
               },
             ],
           });
-        }else {
+        /*}else {
           this.update(session_id, {
             user_session_keys: [
               {
@@ -152,7 +152,7 @@ class Treble {
               },
             ],
           });
-        }
+        }*/
       } else {
         this.update(session_id, {
           user_session_keys: [

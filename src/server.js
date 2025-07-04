@@ -3628,6 +3628,8 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
   }
 });
 
+
+// actualizacion de cotizador para cavca
 /**
  * @swagger
  * /updateOppCavca:
@@ -4032,6 +4034,8 @@ app.post("/updateOppCavcaDev", getTokenDevCavca, verifyToken, (req, res) => {
   }
 });
 
+
+// puentes de conexion entre salesforce cvavca y crediseguro, ambiente sandbox y produccion
 app.post("/bridge_connection_crediseguro", verifyToken, getToken,  (req, res) => {
 
   // Lógica según el evento recibido
@@ -4151,6 +4155,7 @@ app.post("/bridge_connection_cavca_dev", verifyToken, getTokenDevCavca, (req, re
   }
 });
 
+// treble bot crediseguro (webhook)
 app.post("/treble", (req, res) => {
   console.log(req.query.event);
   console.log(req.body);
@@ -4226,6 +4231,77 @@ app.post("/treble_client", getToken, (req, res) => {
       res.status(400).json({ error: "Evento no reconocido" });
       return;
   }
+});
+
+// equidad
+
+function getTokenEquidad(req, res, next) {
+  try {
+    axios({
+      method: "POST",
+      url: "https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/autenticated?username=apicoomeva&password=apicoomeva.123",
+    })
+      .then(({ data }) => {
+        req.token = data;
+        next();
+      })
+      .catch((err) => {
+        res.status(500).json({
+          error: `Ha ocurrido un problema con el servidor: ${err}`,
+        });
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${error}`,
+    });
+  }
+}
+
+app.get("/cartera/:param1/:param2/:param3/:param4", getTokenEquidad, (req, res) => {
+
+  axios({
+    method: "GET",
+    url: `https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/cartera-individual/?param1=${req.params.param1}&param2=${req.params.param2}&param3=${req.params.param3}&param4=${req.params.param4}`,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: req.token,
+    },
+  }).then(({ data }) => {
+    res.status(200).json({
+      message: "Información obtendida exitosamente",
+      status: 200,
+      data: data,
+    });
+  }).catch ((err) => {
+    console.error(err);
+    res.status(500).json({
+      error: `Ha ocurrido un problema con el servidor: ${err}`,
+    });
+  });
+});
+
+app.post("/recaudo", getTokenEquidad, (req, res) => {
+
+  axios({
+    method: "POST",
+    url: `https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}`,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: req.token,
+    },
+  })
+    .then(({ data }) => {
+      res
+        .status(200)
+        .json({ message: "data enviada correctamente", data: data });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({
+        error: `Ha ocurrido un problema con el servidor: ${err}`,
+      });
+    });
+
 });
 
 app.get("*", function (req, res, next) {

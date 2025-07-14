@@ -3,7 +3,12 @@ const FormData = require("form-data");
 const path = require("path");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const region = "us-east-1";
-const s3 = new S3Client({ region });
+const s3 = new S3Client({ region,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 class Treble {
   generarId = (longitud) => {
     const caracteres = "0123456789abcdef";
@@ -461,7 +466,7 @@ class Treble {
             ],
           });
         } catch (error) {
-          this.notificationChat(data.cellphone, error);
+          this.notificationChat(data.cellphone, "error en certificado " + error);
 
           this.update(session_id, {
             user_session_keys: [

@@ -620,7 +620,7 @@ class Treble {
               const salida = `
               "CRED - "${numero_credito.value}
               Fecha máxima para realizar el pago: ${fecha_acuerdo.value}
-              Valor a pagar: ${valor_credito.value}`;
+              Valor a pagar: ${response.pago}`;
 
               this.update(session_id, {
                 user_session_keys: [

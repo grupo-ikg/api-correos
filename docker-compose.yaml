@@ -1,6 +1,7 @@
 services:
   app:
-    image: jeissonlopez2003/backend-crediseguro:v73
+    image: jeissonlopez2003/backend-crediseguro:v74
+    container_name: backend-crediseguro
     ports:
       - 4000:4000
     restart: always

@@ -1765,6 +1765,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
     tipoVehiculo,
     oficina,
     rechazoOCR,
+    costosExpedicionEquidad
   } = req.body;
 
   try {
@@ -1816,6 +1817,7 @@ app.post("/sendPoliza", getToken, (req, res) => {
       tipoVehiculo: tipoVehiculo,
       oficina: oficina,
       rechazoOCR: rechazoOCR,
+      costosExpedicionEquidad
     };
 
     axios({
@@ -1904,6 +1906,7 @@ app.post("/sendPolizaDev", getTokenDev, (req, res) => {
     tipoVehiculo,
     oficina,
     rechazoOCR,
+    costosExpedicionEquidad
   } = req.body;
 
   try {
@@ -1955,6 +1958,7 @@ app.post("/sendPolizaDev", getTokenDev, (req, res) => {
       tipoVehiculo: tipoVehiculo,
       oficina: oficina,
       rechazoOCR: rechazoOCR,
+      costosExpedicionEquidad: costosExpedicionEquidad
     };
 
     axios({

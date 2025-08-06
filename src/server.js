@@ -4243,7 +4243,7 @@ function getTokenEquidad(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/autenticated?username=apicoomeva&password=apicoomeva.123",
+      url: "https://servicios.laequidadseguros.coop/api-recaudo/v1/autenticated?username=CREDISEG&password=CrediSeg2025.",
     })
       .then(({ data }) => {
         req.token = data;
@@ -4265,30 +4265,32 @@ app.get("/cartera/:param1/:param2/:param3/:param4", getTokenEquidad, (req, res) 
 
   axios({
     method: "GET",
-    url: `https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/cartera-individual/?param1=${req.params.param1}&param2=${req.params.param2}&param3=${req.params.param3}&param4=${req.params.param4}`,
+    url: `https://servicios.laequidadseguros.coop/api-recaudo/v1/cartera-individual/?param1=${req.params.param1}&param2=${req.params.param2}&param3=${req.params.param3}&param4=${req.params.param4}`,
     headers: {
       "Content-Type": "application/json",
       Authorization: req.token,
     },
-  }).then(({ data }) => {
-    res.status(200).json({
-      message: "Información obtendida exitosamente",
-      status: 200,
-      data: data,
+  })
+    .then(({ data }) => {
+      res.status(200).json({
+        message: "Información obtendida exitosamente",
+        status: 200,
+        data: data,
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({
+        error: `Ha ocurrido un problema con el servidor: ${err}`,
+      });
     });
-  }).catch ((err) => {
-    console.error(err);
-    res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${err}`,
-    });
-  });
 });
 
 app.post("/recaudo", getTokenEquidad, (req, res) => {
 
   axios({
     method: "POST",
-    url: `https://serviciosqa.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}`,
+    url: `https://servicios.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}`,
     headers: {
       "Content-Type": "application/json",
       Authorization: req.token,

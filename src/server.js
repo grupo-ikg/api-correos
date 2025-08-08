@@ -4290,7 +4290,7 @@ app.post("/recaudo", getTokenEquidad, (req, res) => {
 
   axios({
     method: "POST",
-    url: `https://servicios.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}`,
+    url: `https://servicios.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}&param5=${req.query.param5}`,
     headers: {
       "Content-Type": "application/json",
       Authorization: req.token,

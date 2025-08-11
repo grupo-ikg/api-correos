@@ -4288,20 +4288,28 @@ app.get("/cartera/:param1/:param2/:param3/:param4", getTokenEquidad, (req, res) 
 
 app.post("/recaudo", getTokenEquidad, (req, res) => {
 
+  let url = `https://servicios.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}&param5=${req.query.param5}`;
+  
+  console.log("url");
+  console.log(url);
+
   axios({
     method: "POST",
-    url: `https://servicios.laequidadseguros.coop/api-recaudo/v1/recaudo/?param1=${req.query.param1}&param2=${req.query.param2}&param3=${req.query.param3}&param4=${req.query.param4}&param5=${req.query.param5}`,
+    url: url,
     headers: {
       "Content-Type": "application/json",
       Authorization: req.token,
     },
   })
     .then(({ data }) => {
+      console.log("data");
+      console.log(data);
       res
         .status(200)
         .json({ message: "data enviada correctamente", data: data });
     })
     .catch((err) => {
+      console.log("error");
       console.error(err);
       res.status(500).json({
         error: `Ha ocurrido un problema con el servidor: ${err}`,

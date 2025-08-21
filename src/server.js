@@ -32,7 +32,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "desarrolladorweb@cavca.com.co", // Cambia esto con tu dirección de correo electrónico de Gmail
-    pass: "xnta wfqc llwq wtaq", // Cambia esto con tu contraseña de correo electrónico de Gmail
+    pass: "kprk xqvk wzbq bjph", // Cambia esto con tu contraseña de correo electrónico de Gmail
   },
 });
 

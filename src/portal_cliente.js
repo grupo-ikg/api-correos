@@ -194,8 +194,8 @@ class Treble {
         Estado8: "",
         Estado9: "",
       };
-    } else if (status === "ec" || status === "fmp") {
-      // estado credito, formas y medios de pago
+    } else if (status === "ec") {
+      // estado credito
       estado_credito = {
         Estado1: "Vigente",
         Estado2: "Devuelto",
@@ -220,8 +220,8 @@ class Treble {
         Estado8: "Paz y Salvo",
         Estado9: "",
       };
-    } else if (status === "ic") {
-      // informacion coberturas
+    } else if (status === "ic" || status === "fmp") {
+      // informacion coberturas y formas y medios de pago
       estado_credito = {
         Estado1: "Vigente",
         Estado2: "En proceso",
@@ -234,7 +234,7 @@ class Treble {
         Estado9: "",
       };
     } else if (status === "vig") {
-      // informacion coberturas
+      // vigente
       estado_credito = {
         Estado1: "Vigente",
         Estado2: "",

@@ -280,7 +280,7 @@ function getTokenCavca(req, res, next) {
         process.env.SF_USERNAME +
         "&password=" +
         process.env.SF_PASSNAME +
-        "&grant_type=password"",
+        "&grant_type=password",
     })
       .then(({ data }) => {
         req.token = data.access_token;

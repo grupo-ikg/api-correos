@@ -4,6 +4,6 @@ services:
     container_name: backend-crediseguro
     ports:
       - 4000:4000
-    restart: always
+    # restart: always
 
   

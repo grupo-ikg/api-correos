@@ -256,7 +256,7 @@ function getTokenDevCavca(req, res, next) {
         next();
       })
       .catch((err) => {
-        console.log(err);
+        //console.log(err);
         res.status(500).json({
           error: `Ha ocurrido un problema con el servidor: ${err}`,
         });
@@ -272,7 +272,8 @@ function getTokenCavca(req, res, next) {
   try {
     axios({
       method: "POST",
-      url: "https://cavca.my.salesforce.com/services/oauth2/tokenclient_id=" +
+      url:
+        "https://cavca.my.salesforce.com/services/oauth2/token?client_id=" +
         process.env.SF_CLIENT_ID +
         "&client_secret=" +
         process.env.SF_SECRET_KEY +
@@ -287,13 +288,14 @@ function getTokenCavca(req, res, next) {
         next();
       })
       .catch((err) => {
+        console.log(err);
         res.status(500).json({
-          error: `Ha ocurrido un problema con el servidor: ${err}`,
+          error: `Ha ocurrido un problema con el servidor token: ${err}`,
         });
       });
   } catch (error) {
     res.status(500).json({
-      error: `Ha ocurrido un problema con el servidor: ${error}`,
+      error: `Ha ocurrido un problema con el servidor token: ${error}`,
     });
   }
 }
@@ -3808,9 +3810,8 @@ app.post("/updateOppCavcaDevNew", getTokenDevCavca, verifyToken, (req, res) => {
 });
 
 app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
-  const { data } = req.body;
+  const data = req.body;
 
-  try {
     const body = {
       cedula: data.cedula,
       placa: data.placa,
@@ -3864,6 +3865,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
       },
     })
       .then(({ data }) => {
+        console.log(data);
         res.json(data);
       })
       .catch((err) => {
@@ -3872,6 +3874,7 @@ app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
           error: `Ha ocurrido un problema con el servidor a: ${err}`,
         });
       });
+      try {
   } catch (error) {
     res.status(500).json({
       error: `Ha ocurrido un problema con el servidor b: ${error}`,

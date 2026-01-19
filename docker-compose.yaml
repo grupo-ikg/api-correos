@@ -1,6 +1,6 @@
 services:
   app:
-    image: jeissonlopez2003/backend-crediseguro:v85
+    image: jeissonlopez2003/backend-crediseguro:v86
     container_name: backend-crediseguro
     ports:
       - 4000:4000

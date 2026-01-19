@@ -3755,8 +3755,8 @@ app.post("/createCredit", getTokenDev, verifyToken, (req, res) => {
  *                   description: Error message.
  */
 
-app.post("/updateOppCavcaNew", getTokenCavca, verifyToken, async (req, res) => {
-  const data_body = req.body;
+app.post("/updateOppCavca", getTokenCavca, verifyToken, async (req, res) => {
+  const data_body = req.body.data;
 
   try {
 
@@ -3809,8 +3809,8 @@ app.post("/updateOppCavcaDevNew", getTokenDevCavca, verifyToken, (req, res) => {
   }
 });
 
-app.post("/updateOppCavca", getTokenCavca, verifyToken, (req, res) => {
-  const data = req.body;
+app.post("/updateOppCavcaNew", getTokenCavca, verifyToken, (req, res) => {
+  const {data} = req.body;
 
     const body = {
       cedula: data.cedula,
